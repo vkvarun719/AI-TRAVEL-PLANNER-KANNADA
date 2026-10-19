@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', sans-serif;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-karnataka-cream text-karnataka-dark;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-karnataka-red text-white font-semibold px-6 py-3 rounded-xl
+           hover:bg-red-700 transition-all duration-200 shadow-lg
+           hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0
+           disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0;
+  }
+
+  .input-field {
+    @apply w-full rounded-xl border-2 border-stone-200 bg-white px-4 py-3
+           text-sm font-medium text-karnataka-dark placeholder-stone-400
+           focus:border-karnataka-gold focus:outline-none focus:ring-2
+           focus:ring-karnataka-gold/20 transition-all duration-200;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl shadow-md border border-stone-100 p-6;
+  }
+
+  .tag {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold;
+  }
+}
