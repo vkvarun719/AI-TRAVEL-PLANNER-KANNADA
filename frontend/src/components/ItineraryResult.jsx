@@ -4,7 +4,7 @@ import {
   MapPin, Calendar, Backpack, Star, ArrowLeft, Download,
   Hotel, Utensils, Compass, BedDouble, Tag, Clock, Sparkles,
   RotateCcw, Users, Layers, AlertCircle, ExternalLink, Car,
-  Bookmark, Share2, Receipt, Check
+  Bookmark, Share2, Receipt, Check, Leaf
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import DayMapViewer from './DayMapViewer'
@@ -448,7 +448,32 @@ export default function ItineraryResult({ data, onReset, onOpenPhrasebook, onOpe
                 </span>
                 <span className="font-bold text-stone-800 dark:text-stone-100 capitalize">{data.budget}</span>
               </div>
+              {data.preset && (
+                <div className="flex items-center justify-between text-stone-600 dark:text-stone-300">
+                  <span className="flex items-center gap-1.5 text-stone-400 dark:text-stone-500">
+                    <Sparkles size={13} className="text-karnataka-red" /> {t('presetLabel')}
+                  </span>
+                  <span className="font-bold text-stone-800 dark:text-stone-100 capitalize">
+                    {data.preset === 'bikers' ? '🏍️ Biker Ride' :
+                     data.preset === 'solo' ? '🎒 Solo Explorer' :
+                     data.preset === 'students' ? '🎓 Students & Youth' :
+                     data.preset === 'pilgrimage' ? '🛕 Pilgrimage' :
+                     data.preset === 'eco-friendly' ? '🌿 Eco-Friendly' :
+                     '👨‍👩‍👧‍👦 Family'}
+                  </span>
+                </div>
+              )}
             </div>
+
+            {/* Eco Filter Active Badge */}
+            {(data.eco_filter || data.preset === 'eco-friendly') && (
+              <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2 mb-3">
+                <Leaf size={14} className="text-karnataka-green flex-shrink-0" />
+                <span className="font-bold">
+                  {language === 'kn' ? 'ಪರಿಸರಸ್ನೇಹಿ ಪ್ರವಾಸ: KSRTC ಮತ್ತು ಹಸಿರು ಹೋಂಸ್ಟೇ' : 'Eco-Conscious Trip: KSRTC & Eco-Homestays'}
+                </span>
+              </div>
+            )}
 
             {/* Interest Tags */}
             <div className="flex flex-wrap gap-1.5 mb-4">

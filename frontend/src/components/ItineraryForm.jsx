@@ -3,11 +3,56 @@ import toast from 'react-hot-toast'
 import {
   MapPin, Clock, Wallet, Compass, Loader2, Sparkles,
   Mountain, TreePine, Landmark, Bike, Camera, Utensils, Waves, Mic,
-  Users, Calendar, Heart, Shield, Gem, Tent
+  Users, Calendar, Heart, Shield, Gem, Tent, Leaf
 } from 'lucide-react'
 import { generateItinerary } from '../api/client'
 import { useLanguage } from '../context/LanguageContext'
 import VoiceInputModal from './VoiceInputModal'
+
+const PRESET_CONFIGS = [
+  {
+    id: 'family',
+    titleKey: 'presetFamily',
+    descKey: 'presetFamilyDesc',
+    emoji: '👨‍👩‍👧‍👦',
+    defaults: { travelers: 4, vibe: 'Family', budget: 'mid-range', eco_filter: false, interests: ['Heritage', 'Food'] }
+  },
+  {
+    id: 'solo',
+    titleKey: 'presetSolo',
+    descKey: 'presetSoloDesc',
+    emoji: '🎒',
+    defaults: { travelers: 1, vibe: 'Relaxed', budget: 'mid-range', eco_filter: false, interests: ['Heritage', 'Photography'] }
+  },
+  {
+    id: 'bikers',
+    titleKey: 'presetBikers',
+    descKey: 'presetBikersDesc',
+    emoji: '🏍️',
+    defaults: { travelers: 2, vibe: 'Adventure', budget: 'mid-range', eco_filter: false, interests: ['Motorcycle', 'Western Ghats'] }
+  },
+  {
+    id: 'students',
+    titleKey: 'presetStudents',
+    descKey: 'presetStudentsDesc',
+    emoji: '🎓',
+    defaults: { travelers: 4, vibe: 'Budget', budget: 'budget', eco_filter: false, interests: ['Adventure', 'Beaches'] }
+  },
+  {
+    id: 'pilgrimage',
+    titleKey: 'presetPilgrimage',
+    descKey: 'presetPilgrimageDesc',
+    emoji: '🛕',
+    defaults: { travelers: 2, vibe: 'Spiritual', budget: 'mid-range', eco_filter: false, interests: ['Heritage'] }
+  },
+  {
+    id: 'eco-friendly',
+    titleKey: 'presetEcoFriendly',
+    descKey: 'presetEcoFriendlyDesc',
+    emoji: '🌿',
+    defaults: { vibe: 'Relaxed', budget: 'mid-range', eco_filter: true, interests: ['Western Ghats', 'Wildlife'] }
+  },
+]
 
 const INTEREST_CONFIGS = [
   { key: 'Heritage', translationKey: 'interestHeritage', icon: Landmark },
@@ -73,6 +118,8 @@ export default function ItineraryForm({ onResult, onStartLoading, onError, prefi
     days: 3,
     budget: 'mid-range',
     vibe: 'Relaxed',
+    preset: 'family',
+    eco_filter: false,
     travelers: 2,
     travel_month: 'October',
     interests: ['Heritage', 'Food'],
@@ -90,6 +137,15 @@ export default function ItineraryForm({ onResult, onStartLoading, onError, prefi
       }))
     }
   }, [prefillDestination])
+
+  const handleSelectPreset = (preset) => {
+    setForm(prev => ({
+      ...prev,
+      preset: preset.id,
+      ...(preset.defaults || {})
+    }))
+    toast.success(language === 'kn' ? `${t(preset.titleKey)} ಪ್ರಿಸೆಟ್ ಆಯ್ಕೆಯಾಗಿದೆ!` : `${t(preset.titleKey)} preset applied!`)
+  }
 
   const toggleInterest = (val) => {
     setForm(f => ({
@@ -161,6 +217,93 @@ export default function ItineraryForm({ onResult, onStartLoading, onError, prefi
             <Mic size={13} />
             <span>{language === 'kn' ? 'ಮಾತನಾಡಿ' : 'Speak'}</span>
           </button>
+        </div>
+
+        {/* Trip Style Presets (solo, family, bikers, students, pilgrimage, eco-friendly) */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-stone-700">
+              <Sparkles size={14} className="text-karnataka-red" /> {t('presetLabel')}
+            </label>
+            <span className="text-[11px] text-stone-500 font-medium">
+              {language === 'kn' ? 'ತ್ವರಿತ ಶೈಲಿ' : 'Quick Presets'}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+            {PRESET_CONFIGS.map(preset => {
+              const isActive = form.preset === preset.id
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => handleSelectPreset(preset)}
+                  className={`p-3 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between ${
+                    isActive
+                      ? 'border-karnataka-red bg-red-50/50 shadow-xs ring-2 ring-karnataka-red/25'
+                      : 'border-stone-200 bg-white hover:border-stone-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-1 mb-1">
+                    <span className="text-xl">{preset.emoji}</span>
+                    {isActive && (
+                      <span className="w-2 h-2 rounded-full bg-karnataka-red animate-pulse" />
+                    )}
+                  </div>
+                  <div>
+                    <div className={`text-xs font-black leading-tight ${isActive ? 'text-karnataka-red' : 'text-stone-900'}`}>
+                      {t(preset.titleKey)}
+                    </div>
+                    <div className="text-[10px] text-stone-500 line-clamp-1 mt-0.5 font-normal">
+                      {t(preset.descKey)}
+                    </div>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Eco-Friendly Filter Toggle */}
+        <div className={`p-3.5 rounded-2xl border transition-all duration-200 ${
+          form.eco_filter
+            ? 'bg-emerald-50/90 border-emerald-300 shadow-2xs ring-2 ring-emerald-500/20'
+            : 'bg-white border-stone-200 hover:border-emerald-200'
+        }`}>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${
+                form.eco_filter ? 'bg-karnataka-green text-white shadow-xs' : 'bg-stone-100 text-stone-500'
+              }`}>
+                <Leaf size={16} />
+              </div>
+              <div>
+                <div className="text-xs font-black text-stone-900 flex items-center gap-2">
+                  <span>{t('ecoFilterTitle')}</span>
+                  {form.eco_filter && (
+                    <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-600 text-white font-bold tracking-wider uppercase">
+                      Active
+                    </span>
+                  )}
+                </div>
+                <div className="text-[11px] text-stone-500 font-medium leading-tight">
+                  {t('ecoFilterSubtitle')}
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setForm(f => ({ ...f, eco_filter: !f.eco_filter }))}
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                form.eco_filter ? 'bg-karnataka-green' : 'bg-stone-200'
+              }`}
+            >
+              <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                form.eco_filter ? 'translate-x-5' : 'translate-x-0'
+              }`} />
+            </button>
+          </div>
         </div>
 
         {/* 1. Starting Point & Travel Month Row */}

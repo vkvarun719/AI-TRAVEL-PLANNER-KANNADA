@@ -138,6 +138,49 @@ You MUST write all textual content, descriptions, and titles in natural, fluent,
 CRITICAL: Keep all JSON object keys in English (e.g. "summary", "itinerary", "cost_breakdown", "season_info", "stay", "places_to_visit") so the system can parse the JSON structure, but all string values must be in Kannada!
 """
 
+    preset_instructions = ""
+    preset_lower = (req.preset or "").lower()
+    if preset_lower == "bikers":
+        preset_instructions = """
+TRIP STYLE PRESET — BIKERS / GHATS RIDERS:
+- Prioritize exhilarating riding corridors: Ghat roads (Charmadi, Agumbe, Bisle, or Shiradi), scenic coastal highways (NH 66), and coffee plantation twists.
+- Include rider-friendly highway pitstops, viewpoints, homestays with secure bike parking, and monsoon/curve road safety tips.
+"""
+    elif preset_lower == "pilgrimage":
+        preset_instructions = """
+TRIP STYLE PRESET — PILGRIMAGE & SACRED DARSHAN:
+- Center around Karnataka's sacred temples and heritage shrines (e.g. Kukke Subramanya, Dharmasthala, Udupi Krishna Matha, Murudeshwar, Sringeri, Chamundeshwari, Virupaksha, Gokarna Mahabaleshwar).
+- Detail morning and evening pooja/darshan timings, temple attire guidelines, and serene temple Annadanam / sattvic meals.
+"""
+    elif preset_lower == "students":
+        preset_instructions = """
+TRIP STYLE PRESET — STUDENTS & YOUTH BUDGET:
+- Maximize adventure, trekking, beach hopping, and budget friendliness.
+- Recommend youth hostels, campsite tents, student-friendly group activities, and iconic inexpensive local mess joints.
+"""
+    elif preset_lower == "solo":
+        preset_instructions = """
+TRIP STYLE PRESET — SOLO EXPLORER:
+- Emphasize verified solo-traveler friendly homestays, social cafes, heritage walking trails, photography vantage points, and secure transit.
+"""
+    elif preset_lower == "family":
+        preset_instructions = """
+TRIP STYLE PRESET — MULTI-GENERATIONAL FAMILY:
+- Ensure child-friendly and elder-friendly pacing, minimal strenuous climbing, hygienic family dining, and comfortable stays.
+"""
+    elif preset_lower == "eco-friendly" or req.eco_filter:
+        preset_instructions = """
+TRIP STYLE PRESET — ECO-FRIENDLY & GREEN TOURISM:
+- Strict sustainability focus: prioritize KSRTC electric / Rajahamsa buses, Indian Railways trains, certified eco-homestays, nature reserve walks, and farm-to-table local dining.
+- Advise travelers against single-use plastics and high-carbon transport.
+"""
+
+    if req.eco_filter and preset_lower != "eco-friendly":
+        preset_instructions += """
+ECO-FILTER ACTIVE:
+- Emphasize public transit (KSRTC bus or train options), green plantation homestays, and low-impact eco-conscious exploration alongside the chosen preset.
+"""
+
     return f"""
 Plan a {req.days}-day Karnataka trip for {req.travelers} traveler(s) starting from {req.starting_point}.
 
@@ -147,9 +190,13 @@ TRIP PARAMETERS:
 - Travel Month: {req.travel_month or 'October'}
 - Budget Category: {req.budget}
 - Preferred Vibe: {req.vibe or 'Relaxed'} (Options: Relaxed, Adventure, Spiritual, Family, Budget, Luxury, Cultural)
+- Trip Style Preset: {req.preset or 'family'} (solo, family, bikers, students, pilgrimage, eco-friendly)
+- Eco-Friendly Filter: {'Enabled (Prioritize public transport & homestays)' if req.eco_filter else 'Disabled'}
 - Interests: {', '.join(req.interests)}
 - Travel Style: {req.travel_style}
 - Language: {req.language}
+
+{preset_instructions}
 
 {lang_instruction}
 

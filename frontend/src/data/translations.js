@@ -107,6 +107,23 @@ export const translations = {
     packingChecklistSubtitle: "Essential gear and documents recommended for Karnataka travel",
     packedCount: "{packed} of {total} items packed",
 
+    // Feature 8: Trip Style Presets & Eco Filter
+    presetLabel: "Trip Style Preset",
+    presetSolo: "Solo Explorer",
+    presetSoloDesc: "Safe, flexible & photography-focused",
+    presetFamily: "Family Vacation",
+    presetFamilyDesc: "Comfortable pacing, kids & elders friendly",
+    presetBikers: "Biker Road Trip",
+    presetBikersDesc: "Ghat curves, pitstops & scenic thrill",
+    presetStudents: "Students & Youth",
+    presetStudentsDesc: "Budget backpacking, hostels & treks",
+    presetPilgrimage: "Pilgrimage & Darshan",
+    presetPilgrimageDesc: "Sacred temples, darshan times & prasadam",
+    presetEcoFriendly: "Eco-Friendly",
+    presetEcoFriendlyDesc: "Zero-waste, green homestays & nature",
+    ecoFilterTitle: "Eco-Friendly Mode",
+    ecoFilterSubtitle: "Prioritize KSRTC public transit/trains, green homestays & low-impact spots",
+
     // Interests
     interestHeritage: "Heritage & History",
     interestWildlife: "Wildlife & Nature",
@@ -336,6 +353,23 @@ export const translations = {
     packingChecklistTitle: "ಪ್ರಯಾಣದ ಅಗತ್ಯ ವಸ್ತುಗಳ ಪರಿಶೀಲನಾ ಪಟ್ಟಿ",
     packingChecklistSubtitle: "ಕರ್ನಾಟಕದ ಹವಾಮಾನ ಮತ್ತು ಚಾರಣಗಳಿಗೆ ಅಗತ್ಯವಾದ ವಸ್ತುಗಳು",
     packedCount: "{total} ರಲ್ಲಿ {packed} ವಸ್ತುಗಳು ಸಿದ್ಧವಾಗಿವೆ",
+
+    // Feature 8: Trip Style Presets & Eco Filter
+    presetLabel: "ಪ್ರವಾಸ ಶೈಲಿಯ ಪ್ರಿಸೆಟ್",
+    presetSolo: "ಏಕಾಂಗಿ ಪರಿಶೋಧಕ",
+    presetSoloDesc: "ಸುರಕ್ಷಿತ, ಸ್ವತಂತ್ರ ಮತ್ತು ಫೋಟೋಗ್ರಫಿ ಕೇಂದ್ರಿತ",
+    presetFamily: "ಕುಟುಂಬದ ಪ್ರವಾಸ",
+    presetFamilyDesc: "ಮಕ್ಕಳು ಮತ್ತು ಹಿರಿಯರಿಗೆ ಆರಾಮದಾಯಕ ಪಯಣ",
+    presetBikers: "ಬೈಕರ್ಸ್ ರೈಡ್",
+    presetBikersDesc: "ಘಾಟಿ ತಿರುವುಗಳು, ರಮಣೀಯ ರಸ್ತೆಗಳು & ಸಾಹಸ",
+    presetStudents: "ವಿದ್ಯಾರ್ಥಿಗಳು & ಯುವಪಡೆ",
+    presetStudentsDesc: "ಕಡಿಮೆ ಬಜೆಟ್ ಹಾಸ್ಟೆಲ್, ಚಾರಣ & ಮೋಜು",
+    presetPilgrimage: "ತೀರ್ಥಯಾತ್ರೆ ಮತ್ತು ದರ್ಶನ",
+    presetPilgrimageDesc: "ಪವಿತ್ರ ಕ್ಷೇತ್ರಗಳು, ಪೂಜಾ ಸಮಯ & ದೇವಸ್ಥಾನ ಪ್ರಸಾದ",
+    presetEcoFriendly: "ಪರಿಸರಸ್ನೇಹಿ ಪ್ರವಾಸ",
+    presetEcoFriendlyDesc: "ಪ್ಲಾಸ್ಟಿಕ್ ಮುಕ್ತ, ಹಸಿರು ಹೋಂಸ್ಟೇ & ನಿಸರ್ಗ ರಕ್ಷಣೆ",
+    ecoFilterTitle: "ಪರಿಸರಸ್ನೇಹಿ ಮೋಡ್ (Eco Filter)",
+    ecoFilterSubtitle: "KSRTC ಬಸ್ಸುಗಳು, ರೈಲು, ನಿಸರ್ಗ ಹೋಂಸ್ಟೇ ಮತ್ತು ಕಡಿಮೆ ಇಂಗಾಲದ ಪ್ರಯಾಣಕ್ಕೆ ಆದ್ಯತೆ ನೀಡಿ",
 
     // Interests
     interestHeritage: "ಪರಂಪರೆ ಮತ್ತು ಇತಿಹಾಸ",

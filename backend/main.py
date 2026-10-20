@@ -230,6 +230,8 @@ async def create_itinerary(req: ItineraryRequest, request: Request):
         "interests": req.interests,
         "travel_style": req.travel_style,
         "vibe": req.vibe or "Relaxed",
+        "preset": req.preset or "family",
+        "eco_filter": bool(req.eco_filter),
         "travelers": req.travelers,
         "travel_month": req.travel_month or "October",
         "language": req.language or "en",

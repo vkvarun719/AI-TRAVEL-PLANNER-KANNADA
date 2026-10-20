@@ -10,6 +10,8 @@ class ItineraryRequest(BaseModel):
     interests: List[str] = Field(..., min_items=1, max_items=10, example=["Heritage", "Wildlife"])
     travel_style: Optional[str] = Field(default="mixed", example="adventure")
     vibe: Optional[str] = Field(default="Relaxed", example="Spiritual")
+    preset: Optional[str] = Field(default="family", example="bikers", description="solo, family, bikers, students, pilgrimage, eco-friendly")
+    eco_filter: Optional[bool] = Field(default=False, description="Prioritize public transport (KSRTC/trains), eco-homestays, and low-impact spots")
     travelers: int = Field(default=2, ge=1, le=20, example=2)
     travel_month: Optional[str] = Field(default="October", example="October")
     language: Optional[str] = Field(default="en", example="kn")
