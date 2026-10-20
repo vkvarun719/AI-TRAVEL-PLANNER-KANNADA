@@ -19,6 +19,7 @@ CACHE_TTL_SECONDS = 86400  # 24 hours
 def get_cache_key(req: ItineraryRequest) -> str:
     parts = [
         (req.starting_point or "").strip().lower(),
+        (req.destination or "").strip().lower(),
         str(req.days),
         (req.budget or "mid-range").strip().lower(),
         (req.preset or "family").strip().lower(),
@@ -202,10 +203,21 @@ ECO-FILTER ACTIVE:
 - Emphasize public transit (KSRTC bus or train options), green plantation homestays, and low-impact eco-conscious exploration alongside the chosen preset.
 """
 
+    dest_clause = f"traveling from {req.starting_point} to {req.destination}" if req.destination else f"starting from {req.starting_point}"
+    dest_focus = f"""
+PRIMARY DESTINATION FOCUS:
+- Target Destination / Circuit: {req.destination}
+- Center the entire trip around {req.destination} and its immediate scenic circuit, heritage monuments, nature spots, and local food.
+- Day 1 morning must detail how to travel from {req.starting_point} to {req.destination} (road route/highway, approx hours, best transport mode like KSRTC bus, train or car).
+- Day {req.days} evening must include smooth return travel advice back towards {req.starting_point}.
+""" if req.destination else ""
+
     return f"""
-Plan a {req.days}-day Karnataka trip for {req.travelers} traveler(s) starting from {req.starting_point}.
+Plan a {req.days}-day Karnataka trip for {req.travelers} traveler(s) {dest_clause}.
 
 TRIP PARAMETERS:
+- Starting Point (From): {req.starting_point}
+- Destination (To): {req.destination or 'Surrounding Karnataka Circuit'}
 - Duration: {req.days} days
 - Number of Travelers: {req.travelers}
 - Travel Month: {req.travel_month or 'October'}
@@ -217,6 +229,7 @@ TRIP PARAMETERS:
 - Travel Style: {req.travel_style}
 - Language: {req.language}
 
+{dest_focus}
 {preset_instructions}
 
 {lang_instruction}
@@ -252,23 +265,24 @@ def generate_fallback_itinerary(req: ItineraryRequest) -> dict:
     """
     is_kn = req.language == "kn" or (req.language and "kannada" in req.language.lower())
     hub = req.starting_point.capitalize()
+    dest = (req.destination or hub).capitalize()
 
     circuit_summary = (
-        f"{hub} ಸುತ್ತಮುತ್ತಲಿನ ಪ್ರಮುಖ ಐತಿಹಾಸಿಕ ತಾಣಗಳು, ನೈಸರ್ಗಿಕ ಸೌಂದರ್ಯ ಮತ್ತು ಅಧಿಕೃತ ಊಟದ ಸವಿಯನ್ನೊಳಗೊಂಡ ವಿಶೇಷ ಕರುನಾಡ ಪ್ರವಾಸ."
+        f"{hub} ಇಂದ {dest} ಗೆ ಪಯಣ: ಸುತ್ತಮುತ್ತಲಿನ ಪ್ರಮುಖ ಐತಿಹಾಸಿಕ ತಾಣಗಳು, ನೈಸರ್ಗಿಕ ಸೌಂದರ್ಯ ಮತ್ತು ಅಧಿಕೃತ ಊಟದ ಸವಿಯನ್ನೊಳಗೊಂಡ ವಿಶೇಷ ಕರುನಾಡ ಪ್ರವಾಸ."
         if is_kn else
-        f"A rich, authentic Karnataka circuit starting from {hub}, connecting historic landmarks, scenic Western Ghats corridors, and legendary regional food trails."
+        f"A rich, authentic Karnataka journey from {hub} to {dest}, connecting historic landmarks, scenic Western Ghats corridors, and legendary regional food trails."
     )
 
     day_plans = []
     num_days = min(max(1, req.days), 14)
 
-    # Curated regional spots for day generation
+    # Curated regional spots for day generation centered on chosen destination
     sample_spots = [
-        {"name": f"{hub} Heritage Center & Palace", "kn": f"{hub} ಪಾರಂಪರಿಕ ಅರಮನೆ & ಆವರಣ", "highlight": "Royal architecture and stone carvings"},
-        {"name": "Scenic Western Ghats Viewpoint", "kn": "ಪಶ್ಚಿಮ ಘಟ್ಟಗಳ ರಮಣೀಯ ವ್ಯೂಪಾಯಿಂಟ್", "highlight": "Panoramic sunrise & lush mountain passes"},
-        {"name": "Historic Temple & Sacred Tank", "kn": "ಐತಿಹಾಸಿಕ ದೇವಾಲಯ & ಕಲ್ಯಾಣಿ", "highlight": "12th-century stone architecture & peace"},
-        {"name": "Local Spice & Coffee Plantation", "kn": "ಸ್ಥಳೀಯ ಕಾಫಿ & ಸಾಂಬಾರ ತೋಟ", "highlight": "Fresh estate brew, pepper vines & guided walk"},
-        {"name": "Sunset Lake & Boating Sanctuary", "kn": "ಸೂರ್ಯಾಸ್ತ ಸರೋವರ & ಪಕ್ಷಿಧಾಮ", "highlight": "Evening boat ride and bird watching"},
+        {"name": f"{dest} Heritage Center & Ancient Monuments", "kn": f"{dest} ಪಾರಂಪರಿಕ ತಾಣ & ಸ್ಮಾರಕಗಳು", "highlight": "Royal architecture, intricate stone carvings & history"},
+        {"name": f"{dest} Scenic Viewpoint & Mountain Pass", "kn": f"{dest} ರಮಣೀಯ ವ್ಯೂಪಾಯಿಂಟ್", "highlight": "Panoramic sunrise & lush mountain passes"},
+        {"name": f"{dest} Historic Temple & Sacred Tank", "kn": f"{dest} ಐತಿಹಾಸಿಕ ದೇವಾಲಯ & ಕಲ್ಯಾಣಿ", "highlight": "12th-century stone architecture & peace"},
+        {"name": f"{dest} Local Spice & Coffee Trail", "kn": f"{dest} ಸ್ಥಳೀಯ ಕಾಫಿ & ಸಾಂಬಾರ ತೋಟ", "highlight": "Fresh estate brew, pepper vines & guided walk"},
+        {"name": f"{dest} Sunset Lake & River Sanctuary", "kn": f"{dest} ಸೂರ್ಯಾಸ್ತ ಸರೋವರ & ಜಲಧಾಮ", "highlight": "Evening boat ride and bird watching"},
     ]
 
     for d in range(1, num_days + 1):
@@ -283,6 +297,12 @@ def generate_fallback_itinerary(req: ItineraryRequest) -> dict:
             f"ಮುಂಜಾನೆ ೮:೩೦ ಕ್ಕೆ {spot1['kn']} ಗೆ ಭೇಟಿ ನೀಡಿ. ದಾರಿಯಲ್ಲಿ ಬಿಸಿ ಕಾಫಿ ಮತ್ತು ಮಸಾಲೆ ದೋಸೆ ಸವಿಯಿರಿ." if is_kn else
             f"Early morning start at 8:30 AM visiting {spot1['name']}. Savor hot local filter coffee and crispy tiffin on the way."
         )
+        if d == 1 and req.destination and req.destination.lower() != req.starting_point.lower():
+            morning_text = (
+                f"ಮುಂಜಾನೆ ೭:೦೦ ಕ್ಕೆ {hub} ನಿಂದ {dest} ಕಡೆಗೆ ಸುಂದರ ರಸ್ತೆ ಮಾರ್ಗದ ಮೂಲಕ ಪ್ರಯಾಣ ಆರಂಭಿಸಿ. ದಾರಿಯಲ್ಲಿ ಬಿಸಿ ಕಾಫಿ ಮತ್ತು ಮಸಾಲೆ ದೋಸೆ ಸವಿಯಿರಿ." if is_kn else
+                f"Scenic morning departure from {hub} towards {dest} via scenic highway. Enjoy hot local filter coffee and crisp breakfast on the way."
+            )
+
         afternoon_text = (
             f"ಮಧ್ಯಾಹ್ನ ಸ್ಥಳೀಯ ಸಾಂಪ್ರದಾಯಿಕ ಊಟವನ್ನು ಸವಿದು, ನಂತರ {spot2['kn']} ಕಡೆಗೆ ಪ್ರಯಾಣಿಸಿ." if is_kn else
             f"Authentic regional lunch at a local mess, followed by an afternoon journey to {spot2['name']}."
@@ -291,6 +311,12 @@ def generate_fallback_itinerary(req: ItineraryRequest) -> dict:
             f"ಸಂಜೆ ಸೂರ್ಯಾಸ್ತ ವೀಕ್ಷಿಸಿ, ಸ್ಥಳೀಯ ಮಾರುಕಟ್ಟೆಯಲ್ಲಿ ಸಾಂಬಾರ ಪದಾರ್ಥಗಳ ಖರೀದಿಯೊಂದಿಗೆ ದಿನ ಪೂರ್ಣಗೊಳಿಸಿ." if is_kn else
             f"Relaxing sunset walk, followed by exploring the vibrant local bazaar for GI-tagged souvenirs and sweets."
         )
+        if d == num_days and req.destination and req.destination.lower() != req.starting_point.lower():
+            evening_text = (
+                f"ಸಂಜೆ ಸ್ಮರಣೀಯ ನೆನಪುಗಳೊಂದಿಗೆ {dest} ನಿಂದ {hub} ಕಡೆಗೆ ಮರುಪ್ರಯಾಣ." if is_kn else
+                f"Wrap up unforgettable sights in {dest} and commence a smooth return journey back towards {hub}."
+            )
+
         tip_text = (
             "ಮುಂಜಾನೆ ಬೇಗನೆ ಹೊರಟರೆ ಬಿಸಿಲಿನ ತಾಪ ಮತ್ತು ಪ್ರವಾಸಿಗರ ದಟ್ಟಣೆಯಿಂದ ತಪ್ಪಿಸಿಕೊಳ್ಳಬಹುದು." if is_kn else
             "Start before 9:00 AM to beat afternoon heat and temple queues. Carry reusable water bottles."
@@ -383,6 +409,8 @@ def generate_fallback_itinerary(req: ItineraryRequest) -> dict:
             }
         ],
         "itinerary": day_plans,
+        "starting_point": req.starting_point,
+        "destination": req.destination,
         "fallback_generated": True
     }
 
@@ -442,6 +470,8 @@ async def generate_itinerary(req: ItineraryRequest) -> dict:
                     break
 
         result_data = json.loads(raw_text)
+        result_data["starting_point"] = req.starting_point
+        result_data["destination"] = req.destination
 
         # Store in query cache for 24h
         AI_QUERY_CACHE[cache_key] = {

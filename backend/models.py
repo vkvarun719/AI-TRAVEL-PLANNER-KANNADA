@@ -5,6 +5,7 @@ from datetime import datetime
 
 class ItineraryRequest(BaseModel):
     starting_point: str = Field(..., min_length=2, max_length=100, example="Bangalore")
+    destination: Optional[str] = Field(default=None, max_length=100, example="Coorg", description="Target destination or circuit (e.g. Coorg, Hampi, Gokarna)")
     days: int = Field(..., ge=1, le=14, example=3)
     budget: str = Field(..., example="mid-range")
     interests: List[str] = Field(..., min_items=1, max_items=10, example=["Heritage", "Wildlife"])
@@ -113,6 +114,7 @@ class SeasonInfo(BaseModel):
 class RegenerateDayRequest(BaseModel):
     day: int
     starting_point: str = "Bangalore"
+    destination: Optional[str] = None
     days: int = 3
     budget: str = "mid-range"
     vibe: Optional[str] = "Relaxed"
@@ -128,6 +130,7 @@ class RegenerateDayRequest(BaseModel):
 class ItineraryResponse(BaseModel):
     id: Optional[str] = None
     starting_point: str
+    destination: Optional[str] = None
     days: int
     budget: str
     interests: List[str]

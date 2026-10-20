@@ -109,6 +109,8 @@ async def create_itinerary(req: ItineraryRequest, request: Request):
 
     # Sanitize input against potential script injection
     req.starting_point = re.sub(r'[<>&"\']', '', req.starting_point).strip()
+    if req.destination:
+        req.destination = re.sub(r'[<>&"\']', '', req.destination).strip()
 
     try:
         ai_data = await generate_itinerary(req)
@@ -225,6 +227,7 @@ async def create_itinerary(req: ItineraryRequest, request: Request):
 
     doc = {
         "starting_point": req.starting_point,
+        "destination": req.destination,
         "days": req.days,
         "budget": req.budget,
         "interests": req.interests,

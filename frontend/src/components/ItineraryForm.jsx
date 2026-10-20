@@ -3,11 +3,13 @@ import toast from 'react-hot-toast'
 import {
   MapPin, Clock, Wallet, Compass, Loader2, Sparkles,
   Mountain, TreePine, Landmark, Bike, Camera, Utensils, Waves, Mic,
-  Users, Calendar, Heart, Shield, Gem, Tent, Leaf
+  Users, Calendar, Heart, Shield, Gem, Tent, Leaf, ArrowRightLeft,
+  Navigation, Car, Bus, Info, CheckCircle2, ChevronRight
 } from 'lucide-react'
 import { generateItinerary } from '../api/client'
 import { useLanguage } from '../context/LanguageContext'
 import VoiceInputModal from './VoiceInputModal'
+import { POPULAR_DESTINATIONS, getRouteIntelligence } from '../utils/routeIntelligence'
 
 const PRESET_CONFIGS = [
   {
@@ -115,6 +117,7 @@ export default function ItineraryForm({ onResult, onStartLoading, onError, prefi
   const { language, t } = useLanguage()
   const [form, setForm] = useState({
     starting_point: 'Bangalore',
+    destination: 'Coorg',
     days: 3,
     budget: 'mid-range',
     vibe: 'Relaxed',
@@ -125,6 +128,8 @@ export default function ItineraryForm({ onResult, onStartLoading, onError, prefi
     interests: ['Heritage', 'Food'],
     travel_style: 'mixed',
   })
+  const [customDestination, setCustomDestination] = useState('')
+  const [isCustomMode, setIsCustomMode] = useState(false)
   const [loading, setLoading] = useState(false)
   const [isVoiceOpen, setIsVoiceOpen] = useState(false)
 
@@ -133,10 +138,21 @@ export default function ItineraryForm({ onResult, onStartLoading, onError, prefi
     if (prefillDestination) {
       setForm(prev => ({
         ...prev,
-        starting_point: prefillDestination
+        destination: prefillDestination
       }))
     }
   }, [prefillDestination])
+
+  const routeIntel = getRouteIntelligence(form.starting_point, form.destination)
+
+  const handleSwapRoute = () => {
+    setForm(prev => ({
+      ...prev,
+      starting_point: prev.destination || 'Bangalore',
+      destination: prev.starting_point || 'Coorg'
+    }))
+    toast.success(language === 'kn' ? 'ಪ್ರಾರಂಭ ಮತ್ತು ಗಮ್ಯಸ್ಥಾನ ಬದಲಾಯಿಸಲಾಗಿದೆ! 🔄' : 'Swapped Departure and Destination! 🔄')
+  }
 
   const handleSelectPreset = (preset) => {
     setForm(prev => ({
@@ -160,6 +176,7 @@ export default function ItineraryForm({ onResult, onStartLoading, onError, prefi
     setForm(prev => ({
       ...prev,
       ...(voiceData.starting_point && { starting_point: voiceData.starting_point }),
+      ...(voiceData.destination && { destination: voiceData.destination }),
       ...(voiceData.days && { days: voiceData.days }),
       ...(voiceData.budget && { budget: voiceData.budget }),
       ...(voiceData.travel_style && { travel_style: voiceData.travel_style }),
@@ -306,41 +323,191 @@ export default function ItineraryForm({ onResult, onStartLoading, onError, prefi
           </div>
         </div>
 
-        {/* 1. Starting Point & Travel Month Row */}
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-stone-700 mb-2">
-              <MapPin size={14} className="text-karnataka-red" /> {t('startingPoint')}
+        {/* 1. Journey Route: Starting Point (From) ➔ Destination (To) */}
+        <div className="bg-stone-50/90 dark:bg-stone-900/90 border border-stone-200/90 dark:border-stone-800 p-4 sm:p-5 rounded-3xl space-y-4">
+          <div className="flex items-center justify-between">
+            <label className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-karnataka-dark dark:text-white">
+              <Navigation size={15} className="text-karnataka-red animate-pulse" />
+              <span>{language === 'kn' ? 'ಪ್ರವಾಸ ಮಾರ್ಗ ಆಯ್ಕೆ (From ➔ To)' : 'Select Journey Route (From ➔ To)'}</span>
             </label>
-            <select
-              value={form.starting_point}
-              onChange={e => setForm(f => ({ ...f, starting_point: e.target.value }))}
-              className="input-field text-sm font-semibold"
+            <button
+              type="button"
+              onClick={handleSwapRoute}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-[11px] font-bold text-stone-700 dark:text-stone-300 hover:text-karnataka-red hover:border-karnataka-red/40 transition-all shadow-2xs active:scale-95"
+              title="Swap Departure and Destination"
             >
-              {STARTING_POINTS_DATA.map(p => (
-                <option key={p.value} value={p.value}>
-                  {language === 'kn' ? `${p.kn} (${p.value})` : p.en}
-                </option>
-              ))}
-            </select>
+              <ArrowRightLeft size={12} className="text-karnataka-red" />
+              <span>{language === 'kn' ? 'ಬದಲಾಯಿಸಿ' : 'Swap'}</span>
+            </button>
           </div>
 
-          <div>
-            <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-stone-700 mb-2">
-              <Calendar size={14} className="text-karnataka-red" /> {t('travelMonthLabel')}
-            </label>
-            <select
-              value={form.travel_month}
-              onChange={e => setForm(f => ({ ...f, travel_month: e.target.value }))}
-              className="input-field text-sm font-semibold"
-            >
-              {MONTHS_DATA.map(m => (
-                <option key={m.value} value={m.value}>
-                  {t(m.key)} ({m.season === 'monsoon' ? '🌧️ Monsoon' : m.season === 'winter' ? '❄️ Winter' : '☀️ Summer'})
-                </option>
-              ))}
-            </select>
+          <div className="grid sm:grid-cols-2 gap-3.5 relative">
+            {/* From (Starting Point) */}
+            <div className="space-y-1.5">
+              <span className="text-[11px] font-bold text-stone-500 dark:text-stone-400 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <span>{language === 'kn' ? 'ಪ್ರಾರಂಭ (From / Departure)' : 'From (Departure City)'}</span>
+              </span>
+              <select
+                value={form.starting_point}
+                onChange={e => setForm(f => ({ ...f, starting_point: e.target.value }))}
+                className="input-field text-sm font-semibold"
+              >
+                {STARTING_POINTS_DATA.map(p => (
+                  <option key={p.value} value={p.value}>
+                    {language === 'kn' ? `${p.kn} (${p.value})` : p.en}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* To (Destination) */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-stone-500 dark:text-stone-400 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-karnataka-red" />
+                  <span>{language === 'kn' ? 'ಗಮ್ಯಸ್ಥಾನ (To / Destination)' : 'To (Target Destination)'}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsCustomMode(!isCustomMode)}
+                  className="text-[10px] text-karnataka-red font-bold hover:underline"
+                >
+                  {isCustomMode ? (language === 'kn' ? 'ಪಟ್ಟಿ ನೋಡಿ' : 'Select from list') : (language === 'kn' ? '+ ಕಸ್ಟಮ್ ಟೈಪ್ ಮಾಡಿ' : '+ Custom city')}
+                </button>
+              </div>
+
+              {isCustomMode ? (
+                <input
+                  type="text"
+                  placeholder={language === 'kn' ? 'ಯಾವುದೇ ಊರು ಅಥವಾ ತಾಣ...' : 'Enter any Karnataka town or spot...'}
+                  value={form.destination}
+                  onChange={e => setForm(f => ({ ...f, destination: e.target.value }))}
+                  className="input-field text-sm font-semibold"
+                />
+              ) : (
+                <select
+                  value={form.destination}
+                  onChange={e => setForm(f => ({ ...f, destination: e.target.value }))}
+                  className="input-field text-sm font-semibold"
+                >
+                  {POPULAR_DESTINATIONS.map(d => (
+                    <option key={d.value} value={d.value}>
+                      {language === 'kn' ? `${d.kn} (${d.value})` : d.en}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
           </div>
+
+          {/* Popular Destination Quick Pills */}
+          <div className="space-y-1.5 pt-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400">
+              {language === 'kn' ? 'ಜನಪ್ರಿಯ ತಾಣಗಳು (ಒತ್ತಿ ಆಯ್ಕೆಮಾಡಿ):' : 'Popular circuits (click to select):'}
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {POPULAR_DESTINATIONS.slice(0, 8).map(d => {
+                const isSelected = form.destination?.toLowerCase() === d.value.toLowerCase()
+                return (
+                  <button
+                    key={d.value}
+                    type="button"
+                    onClick={() => {
+                      setIsCustomMode(false)
+                      setForm(f => ({ ...f, destination: d.value }))
+                    }}
+                    className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all ${
+                      isSelected
+                        ? 'bg-karnataka-red text-white shadow-xs'
+                        : 'bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:border-stone-400 border border-stone-200 dark:border-stone-700'
+                    }`}
+                  >
+                    {language === 'kn' ? d.kn : d.value}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Instant Route & Travel Details Card */}
+          {routeIntel && (
+            <div className="bg-white dark:bg-stone-800/90 rounded-2xl p-3.5 border border-amber-500/30 shadow-xs space-y-2.5">
+              <div className="flex items-center justify-between flex-wrap gap-2 border-b border-stone-100 dark:border-stone-700 pb-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
+                    <Car size={15} />
+                  </div>
+                  <div>
+                    <span className="text-xs font-black text-stone-900 dark:text-white">
+                      {routeIntel.from} ➔ {routeIntel.to}
+                    </span>
+                    <span className="text-[10px] text-stone-500 dark:text-stone-400 ml-2">
+                      {t('routeDetailsTitle')}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[11px] font-black border border-emerald-500/20">
+                    🛣️ {routeIntel.distanceKm} km
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-300 text-[11px] font-black border border-blue-500/20">
+                    ⏱️ ~{routeIntel.driveTime}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-2 text-[11px]">
+                <div className="bg-stone-50 dark:bg-stone-900/60 p-2.5 rounded-xl border border-stone-100 dark:border-stone-800">
+                  <div className="font-bold text-stone-700 dark:text-stone-300 flex items-center gap-1.5 mb-1">
+                    <Navigation size={12} className="text-karnataka-red shrink-0" />
+                    <span>{t('highwayCorridor')}:</span>
+                  </div>
+                  <p className="text-stone-600 dark:text-stone-400 leading-snug">
+                    {language === 'kn' && routeIntel.highwayKn ? routeIntel.highwayKn : routeIntel.highway}
+                  </p>
+                </div>
+
+                <div className="bg-stone-50 dark:bg-stone-900/60 p-2.5 rounded-xl border border-stone-100 dark:border-stone-800">
+                  <div className="font-bold text-stone-700 dark:text-stone-300 flex items-center gap-1.5 mb-1">
+                    <Bus size={12} className="text-emerald-600 shrink-0" />
+                    <span>{t('transitMode')}:</span>
+                  </div>
+                  <p className="text-stone-600 dark:text-stone-400 leading-snug">
+                    {language === 'kn' && routeIntel.bestTransitKn ? routeIntel.bestTransitKn : routeIntel.bestTransit}
+                  </p>
+                </div>
+              </div>
+
+              {(routeIntel.transitTip || routeIntel.roadStatus) && (
+                <div className="text-[11px] text-amber-800 dark:text-amber-300 bg-amber-50/80 dark:bg-amber-950/30 p-2 rounded-xl border border-amber-200/60 dark:border-amber-900/50 flex items-start gap-1.5">
+                  <Info size={13} className="shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+                  <span>
+                    {language === 'kn' && routeIntel.transitTipKn ? routeIntel.transitTipKn : routeIntel.transitTip}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* 2. Travel Month Row */}
+        <div>
+          <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 mb-2">
+            <Calendar size={14} className="text-karnataka-red" /> {t('travelMonthLabel')}
+          </label>
+          <select
+            value={form.travel_month}
+            onChange={e => setForm(f => ({ ...f, travel_month: e.target.value }))}
+            className="input-field text-sm font-semibold"
+          >
+            {MONTHS_DATA.map(m => (
+              <option key={m.value} value={m.value}>
+                {t(m.key)} ({m.season === 'monsoon' ? '🌧️ Monsoon' : m.season === 'winter' ? '❄️ Winter' : '☀️ Summer'})
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* 2. Duration & Number of Travelers Row */}

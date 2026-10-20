@@ -19,7 +19,9 @@ export function saveTrip(tripData) {
   const trips = getSavedTrips()
 
   const tripId = tripData.id || `trip_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
-  const defaultTitle = `${tripData.days || 3}-Day ${tripData.starting_point || 'Karnataka'} Trip`
+  const defaultTitle = tripData.destination
+    ? `${tripData.days || 3}-Day ${tripData.starting_point} ➔ ${tripData.destination} Trip`
+    : `${tripData.days || 3}-Day ${tripData.starting_point || 'Karnataka'} Trip`
 
   const existingIndex = trips.findIndex(t => t.id === tripId)
   const tripRecord = {
@@ -109,6 +111,7 @@ export function encodeTripToUrl(tripData) {
   try {
     const compact = {
       starting_point: tripData.starting_point,
+      destination: tripData.destination,
       days: tripData.days,
       budget: tripData.budget,
       interests: tripData.interests,
