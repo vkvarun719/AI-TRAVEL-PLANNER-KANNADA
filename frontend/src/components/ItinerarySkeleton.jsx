@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Sparkles, MapPin, Compass, Utensils, CloudSun } from 'lucide-react'
+import { Sparkles, MapPin, Compass, Utensils, CloudSun, Coffee } from 'lucide-react'
 import { useLanguage } from '../context/LanguageContext'
 
 const LOADING_STAGES_EN = [
@@ -23,6 +23,14 @@ export default function ItinerarySkeleton({ startingPoint, days }) {
   const stages = language === 'kn' ? LOADING_STAGES_KN : LOADING_STAGES_EN
   const [currentStage, setCurrentStage] = useState(0)
   const [progress, setProgress] = useState(18)
+  const [elapsedSeconds, setElapsedSeconds] = useState(0)
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setElapsedSeconds(s => s + 1)
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [])
 
   useEffect(() => {
     const stageInterval = setInterval(() => {
@@ -73,6 +81,33 @@ export default function ItinerarySkeleton({ startingPoint, days }) {
             </div>
           </div>
         </div>
+
+        {/* Cold Start Waking Up Banner (Render Free Tier 30-45s) */}
+        {elapsedSeconds >= 6 && (
+          <div className="mt-4 pt-3.5 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between gap-3 animate-fade-in text-xs">
+            <div className="flex items-center gap-2.5">
+              <div className="p-1.5 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300">
+                <Coffee size={16} className="animate-bounce" />
+              </div>
+              <div>
+                <div className="font-black text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
+                  <span>
+                    {language === 'kn' ? 'ಸರ್ವರ್ ಸಕ್ರಿಯಗೊಳ್ಳುತ್ತಿದೆ (~30–45 ಸೆಕೆಂಡು)' : 'Server is waking up from free sleep (~30–45s)'}
+                  </span>
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                </div>
+                <div className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">
+                  {language === 'kn'
+                    ? 'Render ಉಚಿತ ಸರ್ವರ್ ಸ್ಲೀಪ್ ಮೋಡ್‌ನಿಂದ ಸಕ್ರಿಯಗೊಳ್ಳುತ್ತಿದೆ. ಕೆಲವೇ ಕ್ಷಣಗಳಲ್ಲಿ ಪೂರ್ಣಗೊಳ್ಳಲಿದೆ...'
+                    : 'Render free tier spins down after inactivity. Preparing your hyper-local Karnataka itinerary...'}
+                </div>
+              </div>
+            </div>
+            <span className="font-mono text-xs font-bold px-2 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200">
+              {elapsedSeconds}s
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Main Skeleton Grid (Sidebar + Main Column) */}

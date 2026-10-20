@@ -21,4 +21,13 @@ export const scanKannadaImage = (imageBase64, mimeType = 'image/jpeg', category 
     category,
   })
 
+export const pingBackendHealth = async () => {
+  try {
+    const res = await API.get('/health', { timeout: 20000 })
+    return res.data
+  } catch (err) {
+    return { status: 'waking_up', error: err.message }
+  }
+}
+
 export default API
