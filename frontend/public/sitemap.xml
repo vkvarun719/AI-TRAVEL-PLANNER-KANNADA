@@ -1,33 +1,75 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Main Home Page -->
   <url>
-    <loc>https://yatra-karnataka.vercel.app/</loc>
+    <loc>https://ai-travel-planner-kannada.vercel.app/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
+
+  <!-- Static Destination Circuits (Feature 12 SEO) -->
   <url>
-    <loc>https://yatra-karnataka.vercel.app/?trip=hampi-3-day</loc>
+    <loc>https://ai-travel-planner-kannada.vercel.app/?destination=hampi</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://yatra-karnataka.vercel.app/?trip=bengaluru-weekend</loc>
+    <loc>https://ai-travel-planner-kannada.vercel.app/?destination=coorg</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://yatra-karnataka.vercel.app/?trip=coastal-karnataka</loc>
+    <loc>https://ai-travel-planner-kannada.vercel.app/?destination=gokarna</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://yatra-karnataka.vercel.app/?view=destinations</loc>
+    <loc>https://ai-travel-planner-kannada.vercel.app/?destination=badami</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://ai-travel-planner-kannada.vercel.app/?destination=mysuru</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://ai-travel-planner-kannada.vercel.app/?destination=western-ghats</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Instant Sample Circuits -->
+  <url>
+    <loc>https://ai-travel-planner-kannada.vercel.app/?trip=hampi-3-day</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://ai-travel-planner-kannada.vercel.app/?trip=bengaluru-weekend</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://ai-travel-planner-kannada.vercel.app/?trip=coastal-karnataka</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Feature Views -->
+  <url>
+    <loc>https://ai-travel-planner-kannada.vercel.app/?view=destinations</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yatra-karnataka.vercel.app/?view=phrasebook</loc>
-    <changefreq>monthly</changefreq>
+    <loc>https://ai-travel-planner-kannada.vercel.app/?view=phrasebook</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ai-travel-planner-kannada.vercel.app/?view=journal</loc>
+    <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
 </urlset>

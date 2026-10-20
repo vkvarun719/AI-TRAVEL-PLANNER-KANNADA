@@ -20,6 +20,7 @@ import FeedbackModal from './components/FeedbackModal'
 import OfflineIndicator from './components/OfflineIndicator'
 import ItinerarySkeleton from './components/ItinerarySkeleton'
 import FriendlyErrorState from './components/FriendlyErrorState'
+import DestinationLandingPage from './components/DestinationLandingPage'
 import { useLanguage } from './context/LanguageContext'
 import { useAuth } from './context/AuthContext'
 import { getTripById, saveTrip, decodeTripFromUrl } from './utils/tripStorage'
@@ -53,6 +54,7 @@ export default function App() {
   const [isJournalOpen, setIsJournalOpen] = useState(false)
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false)
   const [prefillDestination, setPrefillDestination] = useState(null)
+  const [selectedDestinationSlug, setSelectedDestinationSlug] = useState(null)
   const plannerFormRef = useRef(null)
 
   // Load trip from shareable link or saved trip ID or curated sample in URL
@@ -63,6 +65,11 @@ export default function App() {
       const tripId = params.get('tripId')
       const tripKey = params.get('trip')
       const view = params.get('view')
+      const destinationSlug = params.get('destination')
+
+      if (destinationSlug) {
+        setSelectedDestinationSlug(destinationSlug)
+      }
 
       if (tripData) {
         const decoded = decodeTripFromUrl(tripData)
@@ -354,19 +361,36 @@ export default function App() {
               </button>
             </div>
 
-            {/* Destination Chips */}
-            <div className="flex flex-wrap justify-center gap-2 max-w-2xl mx-auto pt-2">
-              {HERO_PLACES.map(p => (
-                <button
-                  key={p.name}
-                  type="button"
-                  onClick={() => handleSelectDestination(p.name)}
-                  className="bg-black/40 hover:bg-black/70 backdrop-blur-md border border-white/20 rounded-full px-3 py-1 text-xs font-semibold text-white transition-all shadow-sm hover:scale-105"
-                  title={`Plan trip to ${p.name}`}
-                >
-                  📍 {language === 'kn' ? p.kn : p.name}
-                </button>
-              ))}
+            {/* Featured Static Circuit Landing Guides (Feature 12 SEO) */}
+            <div className="pt-2 border-t border-white/10 max-w-3xl mx-auto">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-amber-300/80 mb-2 block">
+                {language === 'kn' ? '🌟 ವಿಶೇಷ ಸರ್ಕ್ಯೂಟ್ ಮಾರ್ಗದರ್ಶಿಗಳು' : '🌟 Featured Destination Guides & Circuits'}
+              </span>
+              <div className="flex flex-wrap justify-center gap-2">
+                {[
+                  { slug: 'hampi', label: '🏛️ Hampi', labelKn: '🏛️ ಹಂಪಿ' },
+                  { slug: 'coorg', label: '☕ Coorg', labelKn: '☕ ಕೂರ್ಗ್' },
+                  { slug: 'gokarna', label: '🏖️ Gokarna', labelKn: '🏖️ ಗೋಕರ್ಣ' },
+                  { slug: 'badami', label: '🪨 Badami', labelKn: '🪨 ಬಾದಾಮಿ' },
+                  { slug: 'mysuru', label: '👑 Mysuru', labelKn: '👑 ಮೈಸೂರು' },
+                  { slug: 'western-ghats', label: '🌿 Western Ghats', labelKn: '🌿 ಪಶ್ಚಿಮ ಘಟ್ಟಗಳು' },
+                ].map(c => (
+                  <button
+                    key={c.slug}
+                    type="button"
+                    onClick={() => {
+                      setSelectedDestinationSlug(c.slug)
+                      const url = new URL(window.location)
+                      url.searchParams.set('destination', c.slug)
+                      window.history.pushState({}, '', url)
+                      setTimeout(() => plannerFormRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
+                    }}
+                    className="bg-amber-500/20 hover:bg-amber-500/40 border border-amber-400/30 rounded-full px-3.5 py-1 text-xs font-bold text-amber-200 hover:text-white transition-all shadow-xs hover:scale-105"
+                  >
+                    {language === 'kn' ? c.labelKn : c.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
           </div>
@@ -378,7 +402,24 @@ export default function App() {
         ref={plannerFormRef}
         className={`flex-1 mx-auto px-4 py-8 sm:py-12 transition-all duration-300 w-full ${result ? 'max-w-7xl' : 'max-w-6xl'}`}
       >
-        {isLoading ? (
+        {selectedDestinationSlug ? (
+          <DestinationLandingPage
+            slug={selectedDestinationSlug}
+            onPlanTrip={(hub, days) => {
+              setSelectedDestinationSlug(null)
+              setPrefillDestination(hub)
+              setTimeout(() => {
+                plannerFormRef.current?.scrollIntoView({ behavior: 'smooth' })
+              }, 100)
+            }}
+            onBack={() => {
+              setSelectedDestinationSlug(null)
+              const url = new URL(window.location)
+              url.searchParams.delete('destination')
+              window.history.pushState({}, '', url)
+            }}
+          />
+        ) : isLoading ? (
           <ItinerarySkeleton
             startingPoint={loadingForm?.starting_point}
             days={loadingForm?.days}

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://yatra-karnataka.vercel.app/sitemap.xml
+Sitemap: https://ai-travel-planner-kannada.vercel.app/sitemap.xml
