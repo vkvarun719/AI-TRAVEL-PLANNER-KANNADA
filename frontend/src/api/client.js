@@ -14,4 +14,11 @@ export const regenerateDay = (payload) =>
 export const listItineraries = () =>
   API.get('/api/itineraries')
 
+export const scanKannadaImage = (imageBase64, mimeType = 'image/jpeg', category = 'general') =>
+  API.post('/api/scan-kannada', {
+    image_base64: imageBase64,
+    mime_type: mimeType,
+    category,
+  })
+
 export default API

@@ -7,7 +7,8 @@ import {
   Check,
   Copy,
   ExternalLink,
-  BookOpen
+  BookOpen,
+  Camera
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { speakPhrase, stopSpeaking } from '../utils/speechSynthesis'
@@ -79,7 +80,7 @@ const CULTURAL_ETIQUETTE = [
   }
 ]
 
-export default function KannadaCompanion({ onOpenFullPhrasebook }) {
+export default function KannadaCompanion({ onOpenFullPhrasebook, onOpenScanner }) {
   const { language, t } = useLanguage()
   const [copiedIdx, setCopiedIdx] = useState(null)
   const [playingIdx, setPlayingIdx] = useState(null)
@@ -134,16 +135,29 @@ export default function KannadaCompanion({ onOpenFullPhrasebook }) {
           </div>
         </div>
 
-        {onOpenFullPhrasebook && (
-          <button
-            type="button"
-            onClick={onOpenFullPhrasebook}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-stone-200 bg-white text-xs font-bold text-karnataka-red hover:bg-stone-50 shadow-2xs transition-colors"
-          >
-            <BookOpen size={13} />
-            <span>{language === 'kn' ? 'ಸಂಪೂರ್ಣ ನುಡಿಗಟ್ಟು' : 'Full Phrasebook'}</span>
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {onOpenScanner && (
+            <button
+              type="button"
+              onClick={onOpenScanner}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-300 bg-amber-50 text-xs font-bold text-amber-900 hover:bg-amber-100 shadow-2xs transition-colors"
+            >
+              <Camera size={13} className="text-amber-600" />
+              <span>{language === 'kn' ? 'ಫಲಕ ಸ್ಕ್ಯಾನರ್' : 'Sign Scanner'}</span>
+            </button>
+          )}
+
+          {onOpenFullPhrasebook && (
+            <button
+              type="button"
+              onClick={onOpenFullPhrasebook}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-stone-200 bg-white text-xs font-bold text-karnataka-red hover:bg-stone-50 shadow-2xs transition-colors"
+            >
+              <BookOpen size={13} />
+              <span>{language === 'kn' ? 'ಸಂಪೂರ್ಣ ನುಡಿಗಟ್ಟು' : 'Full Phrasebook'}</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Phrasebook Grid */}

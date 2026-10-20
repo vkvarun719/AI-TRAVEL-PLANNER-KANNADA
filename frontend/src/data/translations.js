@@ -7,6 +7,7 @@ export const translations = {
     navPhrasebook: "Phrasebook",
     navPlanTrip: "Plan Trip",
     navHeritageSites: "Heritage Circuits",
+    navScanner: "Scan Kannada",
     langSwitch: "ಕನ್ನಡ",
     langActive: "English",
 
@@ -236,6 +237,7 @@ export const translations = {
     navPhrasebook: "ಕನ್ನಡ ನುಡಿಗಟ್ಟು",
     navPlanTrip: "ಪ್ರವಾಸ ಯೋಜನೆ",
     navHeritageSites: "ಪರಂಪರೆ ತಾಣಗಳು",
+    navScanner: "ಕನ್ನಡ ಸ್ಕ್ಯಾನರ್",
     langSwitch: "English",
     langActive: "ಕನ್ನಡ",
 

@@ -21,20 +21,26 @@ class FeedbackRequest(BaseModel):
     message: str = Field(..., min_length=2, max_length=2000)
     email: Optional[str] = None
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "starting_point": "Bangalore",
-                "days": 3,
-                "budget": "mid-range",
-                "interests": ["Heritage", "Wildlife"],
-                "travel_style": "mixed",
-                "vibe": "Relaxed",
-                "travelers": 2,
-                "travel_month": "October",
-                "language": "en"
-            }
-        }
+
+class ScanKannadaRequest(BaseModel):
+    image_base64: str = Field(..., description="Base64-encoded image string of the Kannada sign/text")
+    mime_type: Optional[str] = Field(default="image/jpeg", description="MIME type of the image")
+    category: Optional[str] = Field(default="general", description="signboard, menu, temple, bus_board, general")
+
+
+class DetectedWord(BaseModel):
+    kannada: str
+    english: str
+
+
+class ScanKannadaResponse(BaseModel):
+    kannada_text: str = Field(..., example="ಬೆಂಗಳೂರು ➔ ಮೈಸೂರು ಎಕ್ಸ್ಪ್ರೆಸ್")
+    transliteration: str = Field(..., example="Bengaluru to Mysuru Express")
+    english_translation: str = Field(..., example="Bengaluru to Mysuru Express Bus")
+    category: str = Field(default="Bus Route / Transport", example="Bus Route / Transport")
+    context_and_tips: str = Field(..., example="This is a KSRTC bus route board. Connects Bengaluru to Mysuru.")
+    confidence: float = Field(default=0.95)
+    key_terms: Optional[List[DetectedWord]] = []
 
 
 class StayRecommendation(BaseModel):

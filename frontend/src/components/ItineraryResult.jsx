@@ -280,7 +280,7 @@ function DayCard({ plan, index, t, onRegenerate, isRegenerating }) {
   )
 }
 
-export default function ItineraryResult({ data, onReset, onOpenPhrasebook }) {
+export default function ItineraryResult({ data, onReset, onOpenPhrasebook, onOpenScanner }) {
   const printRef = useRef()
   const { language, t } = useLanguage()
   const [itineraryList, setItineraryList] = useState(data.itinerary || [])
@@ -640,7 +640,10 @@ export default function ItineraryResult({ data, onReset, onOpenPhrasebook }) {
           />
 
           {/* Local Kannada Companion (Phrasebook & Cultural Customs) */}
-          <KannadaCompanion onOpenFullPhrasebook={onOpenPhrasebook} />
+          <KannadaCompanion
+            onOpenFullPhrasebook={onOpenPhrasebook}
+            onOpenScanner={onOpenScanner}
+          />
 
         </div>
 

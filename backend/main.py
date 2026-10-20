@@ -13,9 +13,10 @@ from database import save_itinerary, get_all_itineraries, find_itinerary_by_id
 from models import (
     ItineraryRequest, RegenerateDayRequest, DayPlan,
     StayRecommendation, PlaceToVisit, FoodRecommendation,
-    CostBreakdown, SeasonInfo, DestinationWeatherNote, FeedbackRequest
+    CostBreakdown, SeasonInfo, DestinationWeatherNote, FeedbackRequest,
+    ScanKannadaRequest, ScanKannadaResponse
 )
-from ai_service import generate_itinerary, regenerate_single_day
+from ai_service import generate_itinerary, regenerate_single_day, scan_and_translate_kannada
 
 load_dotenv()
 
@@ -84,6 +85,21 @@ async def submit_feedback(req: FeedbackRequest):
     }
     user_feedback_store.append(entry)
     return {"status": "success", "message": "Feedback recorded", "entry": entry}
+
+
+@app.post("/api/scan-kannada")
+async def scan_kannada_endpoint(req: ScanKannadaRequest, request: Request):
+    client_ip = request.client.host if request.client else "127.0.0.1"
+    check_rate_limit(client_ip)
+
+    if not req.image_base64 or len(req.image_base64) < 10:
+        raise HTTPException(status_code=400, detail="Valid image base64 data is required.")
+
+    try:
+        result = await scan_and_translate_kannada(req.image_base64, req.mime_type or "image/jpeg")
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Kannada vision scanner error: {str(e)}")
 
 
 @app.post("/api/generate-itinerary")

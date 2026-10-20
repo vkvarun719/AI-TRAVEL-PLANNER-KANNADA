@@ -3,7 +3,7 @@ import {
   MapPin, Cpu, Compass, Sparkles, Navigation, BookOpen,
   ArrowRight, Landmark, Mountain, Waves, Bookmark, LogOut,
   MessageSquare, ArrowDown, ChevronRight, Check, Heart, Shield,
-  Utensils, CloudSun, Calendar, Clock, Star, Flame
+  Utensils, CloudSun, Calendar, Clock, Star, Flame, Camera
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import ItineraryForm from './components/ItineraryForm'
@@ -13,6 +13,7 @@ import ThemeToggle from './components/ThemeToggle'
 import PwaInstallButton from './components/PwaInstallButton'
 import DestinationsModal from './components/DestinationsModal'
 import PhrasebookModal from './components/PhrasebookModal'
+import KannadaScannerModal from './components/KannadaScannerModal'
 import MyTripsModal from './components/MyTripsModal'
 import FeedbackModal from './components/FeedbackModal'
 import ItinerarySkeleton from './components/ItinerarySkeleton'
@@ -44,6 +45,7 @@ export default function App() {
   const [errorState, setErrorState] = useState(null)
   const [isDestinationsOpen, setIsDestinationsOpen] = useState(false)
   const [isPhrasebookOpen, setIsPhrasebookOpen] = useState(false)
+  const [isScannerOpen, setIsScannerOpen] = useState(false)
   const [isMyTripsOpen, setIsMyTripsOpen] = useState(false)
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false)
   const [prefillDestination, setPrefillDestination] = useState(null)
@@ -167,6 +169,17 @@ export default function App() {
             >
               <BookOpen size={14} className="text-karnataka-red" />
               <span>{t('navPhrasebook')}</span>
+            </button>
+
+            {/* Kannada Sign & Text Scanner Button */}
+            <button
+              type="button"
+              onClick={() => setIsScannerOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-amber-900 dark:text-amber-200 hover:text-amber-950 dark:hover:text-white bg-amber-500/10 dark:bg-amber-400/20 border border-amber-500/30 hover:border-amber-500/50 shadow-2xs transition-all active:scale-95"
+              title="Scan Kannada sign or menu"
+            >
+              <Camera size={13} className="text-amber-600 dark:text-amber-400" />
+              <span>{t('navScanner')}</span>
             </button>
 
             {/* PWA Install Button */}
@@ -302,6 +315,15 @@ export default function App() {
                 <Compass size={15} className="text-karnataka-gold" />
                 <span>{t('exploreInstantSample')} (3-Day Hampi)</span>
               </button>
+
+              <button
+                type="button"
+                onClick={() => setIsScannerOpen(true)}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500/20 to-red-500/20 hover:from-amber-500/30 hover:to-red-500/30 backdrop-blur-md border border-amber-400/40 text-amber-200 hover:text-white font-bold px-6 py-3.5 rounded-2xl transition-all text-sm shadow-sm"
+              >
+                <Camera size={15} className="text-amber-300" />
+                <span>{language === 'kn' ? '📷 ಕನ್ನಡ ಫಲಕ ಸ್ಕ್ಯಾನ್' : '📷 Scan Kannada Sign'}</span>
+              </button>
             </div>
 
             {/* Destination Chips */}
@@ -350,6 +372,7 @@ export default function App() {
               setErrorState(null)
             }}
             onOpenPhrasebook={() => setIsPhrasebookOpen(true)}
+            onOpenScanner={() => setIsScannerOpen(true)}
           />
         ) : (
           /* Landing Page Layout (Sample Itineraries + Why Yatra AI + Plan Your Trip Form) */
@@ -702,6 +725,12 @@ export default function App() {
       <PhrasebookModal
         isOpen={isPhrasebookOpen}
         onClose={() => setIsPhrasebookOpen(false)}
+      />
+
+      {/* Kannada Sign & Text Scanner Modal */}
+      <KannadaScannerModal
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
       />
 
       {/* My Trips Modal */}

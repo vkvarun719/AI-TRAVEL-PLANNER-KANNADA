@@ -104,3 +104,7 @@ export function stopSpeaking() {
     currentUtterance = null
   }
 }
+
+export function playKannadaText(text, phonetic = '') {
+  return speakPhrase(text, phonetic || text)
+}
