@@ -1,72 +1,104 @@
-// Yatra AI Service Worker for offline access and PWA support
-const CACHE_NAME = 'yatra-ai-cache-v1'
-const STATIC_ASSETS = [
+// Yatra AI Enhanced Service Worker for robust PWA offline resilience
+const CACHE_NAME = 'yatra-ai-cache-v2'
+
+// Core assets to pre-cache on install
+const PRECACHE_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
   '/icon-192.svg',
-  '/icon-512.svg'
+  '/icon-512.svg',
+  '/robots.txt',
+  '/sitemap.xml'
 ]
 
-// Install: Cache essential assets
+// 1. Install Event: Cache Core App Shell
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS)
-    }).then(() => self.skipWaiting())
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(PRECACHE_ASSETS))
+      .then(() => self.skipWaiting())
   )
 })
 
-// Activate: Clean up stale caches
+// 2. Activate Event: Clear Outdated Caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+        keys
+          .filter((key) => key !== CACHE_NAME)
+          .map((key) => caches.delete(key))
       )
     }).then(() => self.clients.claim())
   )
 })
 
-// Fetch: Network-first for dynamic requests, Stale-while-revalidate for assets
+// 3. Fetch Event: Smart Offline Caching
 self.addEventListener('fetch', (event) => {
-  // Ignore chrome-extension or non-http requests
-  if (!event.request.url.startsWith('http')) return
+  const { request } = event
+  const url = new URL(request.url)
 
-  // Handle navigation requests (e.g. page reloads while offline)
-  if (event.request.mode === 'navigate') {
+  // Ignore non-GET requests and non-http(s) schemes (e.g., chrome-extension)
+  if (request.method !== 'GET' || !request.url.startsWith('http')) {
+    return
+  }
+
+  // Handle SPA Navigation requests: Network-first with offline index.html fallback
+  if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match('/index.html'))
+      fetch(request).catch(() => {
+        return caches.match('/index.html')
+      })
     )
     return
   }
 
-  // Handle static assets & images
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Fetch in background to update cache
-        fetch(event.request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse))
-          }
-        }).catch(() => {/* ignore background update failure */})
-        return cachedResponse
-      }
+  // Handle static assets (CSS, JS, Fonts, Images)
+  const isStaticAsset =
+    url.pathname.startsWith('/assets/') ||
+    url.pathname.endsWith('.js') ||
+    url.pathname.endsWith('.css') ||
+    url.pathname.endsWith('.svg') ||
+    url.pathname.endsWith('.png') ||
+    url.pathname.endsWith('.jpg') ||
+    url.pathname.endsWith('.webp') ||
+    url.pathname.endsWith('.woff2') ||
+    url.hostname.includes('unsplash.com') ||
+    url.hostname.includes('tile.openstreetmap.org')
 
-      return fetch(event.request).then((networkResponse) => {
-        // Cache new successful GET responses for assets
-        if (
-          networkResponse &&
-          networkResponse.status === 200 &&
-          event.request.method === 'GET' &&
-          (event.request.url.includes('/assets/') || event.request.url.includes('images.unsplash.com'))
-        ) {
-          const clone = networkResponse.clone()
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
-        }
-        return networkResponse
+  if (isStaticAsset) {
+    event.respondWith(
+      caches.match(request).then((cachedResponse) => {
+        // Return cached version if found, while updating cache in background
+        const fetchPromise = fetch(request)
+          .then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200) {
+              const responseToCache = networkResponse.clone()
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put(request, responseToCache)
+              })
+            }
+            return networkResponse
+          })
+          .catch(() => cachedResponse)
+
+        return cachedResponse || fetchPromise
       })
-    })
+    )
+    return
+  }
+
+  // Default: Network-first with cached fallback
+  event.respondWith(
+    fetch(request)
+      .then((response) => {
+        if (response && response.status === 200) {
+          const clone = response.clone()
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
+        }
+        return response
+      })
+      .catch(() => caches.match(request))
   )
 })

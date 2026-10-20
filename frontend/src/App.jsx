@@ -16,6 +16,7 @@ import PhrasebookModal from './components/PhrasebookModal'
 import KannadaScannerModal from './components/KannadaScannerModal'
 import MyTripsModal from './components/MyTripsModal'
 import FeedbackModal from './components/FeedbackModal'
+import OfflineIndicator from './components/OfflineIndicator'
 import ItinerarySkeleton from './components/ItinerarySkeleton'
 import FriendlyErrorState from './components/FriendlyErrorState'
 import { useLanguage } from './context/LanguageContext'
@@ -748,6 +749,12 @@ export default function App() {
       <FeedbackModal
         isOpen={isFeedbackOpen}
         onClose={() => setIsFeedbackOpen(false)}
+      />
+
+      {/* PWA Offline Indicator */}
+      <OfflineIndicator
+        onOpenMyTrips={() => setIsMyTripsOpen(true)}
+        onOpenPhrasebook={() => setIsPhrasebookOpen(true)}
       />
 
       {/* Footer */}
