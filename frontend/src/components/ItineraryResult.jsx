@@ -408,16 +408,26 @@ export default function ItineraryResult({ data, onReset, onOpenPhrasebook, onOpe
               <Sparkles size={13} /> {t('dossierBadge')}
             </div>
             <h2 className="text-xl font-black text-karnataka-dark dark:text-white leading-tight mb-2">
-              {data.days}-{language === 'kn' ? 'ದಿನದ' : 'Day'} {data.vibe ? data.vibe : (data.travel_style || t('customJourney'))}
+              {data.destination
+                ? `${data.starting_point} ➔ ${data.destination} (${data.days} ${language === 'kn' ? 'ದಿನಗಳು' : 'Days'})`
+                : `${data.days}-${language === 'kn' ? 'ದಿನದ' : 'Day'} ${data.vibe ? data.vibe : (data.travel_style || t('customJourney'))}`}
             </h2>
             
             <div className="space-y-2 py-3 border-y border-stone-100 dark:border-stone-800 my-3 text-xs">
               <div className="flex items-center justify-between text-stone-600 dark:text-stone-300">
                 <span className="flex items-center gap-1.5 text-stone-400 dark:text-stone-500">
-                  <MapPin size={13} className="text-karnataka-red" /> {t('startingHub')}
+                  <MapPin size={13} className="text-emerald-500" /> {t('startingHub')}
                 </span>
                 <span className="font-bold text-stone-800 dark:text-stone-100">{data.starting_point}</span>
               </div>
+              {data.destination && (
+                <div className="flex items-center justify-between text-stone-600 dark:text-stone-300 bg-red-50/70 dark:bg-red-950/30 p-2 rounded-xl border border-red-200/50">
+                  <span className="flex items-center gap-1.5 text-karnataka-red font-bold">
+                    <MapPin size={13} className="text-karnataka-red" /> {language === 'kn' ? 'ಗಮ್ಯಸ್ಥಾನ' : 'Destination'}
+                  </span>
+                  <span className="font-black text-karnataka-red dark:text-red-300">{data.destination}</span>
+                </div>
+              )}
               <div className="flex items-center justify-between text-stone-600 dark:text-stone-300">
                 <span className="flex items-center gap-1.5 text-stone-400 dark:text-stone-500">
                   <Calendar size={13} className="text-karnataka-green" /> {t('totalDays')}

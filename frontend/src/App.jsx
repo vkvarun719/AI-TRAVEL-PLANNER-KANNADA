@@ -3,7 +3,7 @@ import {
   MapPin, Cpu, Compass, Sparkles, Navigation, BookOpen,
   ArrowRight, Landmark, Mountain, Waves, Bookmark, LogOut,
   MessageSquare, ArrowDown, ChevronRight, Check, Heart, Shield,
-  Utensils, CloudSun, Calendar, Clock, Star, Flame, Camera
+  Utensils, CloudSun, Calendar, Clock, Star, Flame, Camera, Award
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import ItineraryForm from './components/ItineraryForm'
@@ -13,6 +13,7 @@ import ThemeToggle from './components/ThemeToggle'
 import PwaInstallButton from './components/PwaInstallButton'
 import DestinationsModal from './components/DestinationsModal'
 import PhrasebookModal from './components/PhrasebookModal'
+import PresentationModal from './components/PresentationModal'
 import KannadaScannerModal from './components/KannadaScannerModal'
 import MyTripsModal from './components/MyTripsModal'
 import TravelJournalModal from './components/TravelJournalModal'
@@ -53,6 +54,7 @@ export default function App() {
   const [isMyTripsOpen, setIsMyTripsOpen] = useState(false)
   const [isJournalOpen, setIsJournalOpen] = useState(false)
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false)
+  const [isPresentationOpen, setIsPresentationOpen] = useState(false)
   const [prefillDestination, setPrefillDestination] = useState(null)
   const [selectedDestinationSlug, setSelectedDestinationSlug] = useState(null)
   const plannerFormRef = useRef(null)
@@ -215,6 +217,17 @@ export default function App() {
             >
               <Camera size={13} className="text-amber-600 dark:text-amber-400" />
               <span>{t('navScanner')}</span>
+            </button>
+
+            {/* Presentation (PPT) Button */}
+            <button
+              type="button"
+              onClick={() => setIsPresentationOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-stone-900 dark:text-white bg-gradient-to-r from-karnataka-yellow to-amber-400 hover:from-amber-400 hover:to-amber-500 border border-amber-500/50 shadow-xs hover:shadow-md transition-all active:scale-95"
+              title="View Hackathon Presentation Slides & Download PPTX"
+            >
+              <Award size={13} className="text-karnataka-red" />
+              <span className="font-extrabold">{t('navPresentation') || 'PPT'}</span>
             </button>
 
             {/* PWA Install Button */}
@@ -824,6 +837,12 @@ export default function App() {
       <FeedbackModal
         isOpen={isFeedbackOpen}
         onClose={() => setIsFeedbackOpen(false)}
+      />
+
+      {/* Presentation (PPT) Modal */}
+      <PresentationModal
+        isOpen={isPresentationOpen}
+        onClose={() => setIsPresentationOpen(false)}
       />
 
       {/* PWA Offline Indicator */}

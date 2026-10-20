@@ -5,7 +5,7 @@ import json
 from collections import defaultdict
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, FileResponse
 from dotenv import load_dotenv
 from datetime import datetime
 
@@ -323,3 +323,20 @@ async def get_itinerary(itinerary_id: str):
     if not doc:
         raise HTTPException(status_code=404, detail="Itinerary not found")
     return doc
+
+
+@app.get("/api/download-presentation")
+async def download_presentation():
+    # Return the pre-generated PowerPoint file
+    root_dir = os.path.dirname(os.path.dirname(__file__))
+    ppt_path = os.path.join(root_dir, "Yatra_AI_Presentation.pptx")
+    if not os.path.exists(ppt_path):
+        # Fallback to frontend public directory
+        ppt_path = os.path.join(root_dir, "frontend", "public", "Yatra_AI_Presentation.pptx")
+    if not os.path.exists(ppt_path):
+        raise HTTPException(status_code=404, detail="Presentation file not found.")
+    return FileResponse(
+        path=ppt_path,
+        filename="Yatra_AI_Karnataka_Presentation.pptx",
+        media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation"
+    )
