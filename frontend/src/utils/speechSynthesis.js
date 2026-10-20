@@ -34,7 +34,7 @@ export function getAvailableVoices() {
  * Speaks a phrase. Tries Kannada voice (kn-IN) first with kannada text;
  * if not available, uses Indian English voice (en-IN) with phonetic text.
  */
-export async function speakPhrase(kannadaText, phoneticText, onStart, onEnd, onError) {
+export async function speakPhrase(kannadaText, phoneticText, onStart, onEnd, onError, speechRate = 0.85) {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
     onError?.('Speech synthesis not supported on this browser')
     return { success: false, reason: 'unsupported' }
@@ -71,7 +71,7 @@ export async function speakPhrase(kannadaText, phoneticText, onStart, onEnd, onE
 
   const utterance = new SpeechSynthesisUtterance(textToSpeak)
   utterance.lang = voiceLang
-  utterance.rate = 0.85 // slightly slower for clean pronunciation
+  utterance.rate = typeof speechRate === 'number' ? speechRate : 0.85 // adjustable rate
   utterance.pitch = 1.0
 
   if (selectedVoice) {
