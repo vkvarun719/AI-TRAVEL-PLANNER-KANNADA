@@ -545,11 +545,12 @@ export default function ItineraryResult({ data, onReset, onOpenPhrasebook, onOpe
           {/* Phase 3: Interactive Leaflet Map with OpenStreetMap */}
           <DayMapViewer startingPoint={data.starting_point} itinerary={itineraryList} />
 
-          {/* Phase 2: Detailed Cost Breakdown Card */}
+          {/* Detailed Cost Breakdown & Budget Estimator Card */}
           <CostBreakdownCard
             costBreakdown={data.cost_breakdown}
             travelers={data.travelers || 2}
             days={data.days}
+            initialTier={data.budget || 'mid'}
           />
 
           {/* Phase 3: Transport & Logistics (KSRTC, IRCTC, Self-Drive, Cabs) */}
