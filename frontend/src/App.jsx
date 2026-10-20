@@ -15,6 +15,7 @@ import DestinationsModal from './components/DestinationsModal'
 import PhrasebookModal from './components/PhrasebookModal'
 import KannadaScannerModal from './components/KannadaScannerModal'
 import MyTripsModal from './components/MyTripsModal'
+import TravelJournalModal from './components/TravelJournalModal'
 import FeedbackModal from './components/FeedbackModal'
 import OfflineIndicator from './components/OfflineIndicator'
 import ItinerarySkeleton from './components/ItinerarySkeleton'
@@ -48,6 +49,7 @@ export default function App() {
   const [isPhrasebookOpen, setIsPhrasebookOpen] = useState(false)
   const [isScannerOpen, setIsScannerOpen] = useState(false)
   const [isMyTripsOpen, setIsMyTripsOpen] = useState(false)
+  const [isJournalOpen, setIsJournalOpen] = useState(false)
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false)
   const [prefillDestination, setPrefillDestination] = useState(null)
   const plannerFormRef = useRef(null)
@@ -83,6 +85,8 @@ export default function App() {
         setIsDestinationsOpen(true)
       } else if (view === 'phrasebook') {
         setIsPhrasebookOpen(true)
+      } else if (view === 'journal') {
+        setIsJournalOpen(true)
       }
     } catch (err) {
       console.error('URL trip parameter parsing error:', err)
@@ -178,6 +182,17 @@ export default function App() {
             >
               <BookOpen size={14} className="text-karnataka-red" />
               <span>{t('navPhrasebook')}</span>
+            </button>
+
+            {/* Travel Journal & Wishlist Button */}
+            <button
+              type="button"
+              onClick={() => setIsJournalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-amber-950 dark:text-amber-100 hover:text-stone-900 bg-amber-100/70 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700 shadow-2xs transition-all active:scale-95"
+              title="Travel Journal & Wishlist"
+            >
+              <BookOpen size={13} className="text-amber-700 dark:text-amber-300" />
+              <span>{language === 'kn' ? 'ಪ್ರವಾಸ ಡೈರಿ' : 'Journal'}</span>
             </button>
 
             {/* Kannada Sign & Text Scanner Button */}
@@ -751,6 +766,13 @@ export default function App() {
           setErrorState(null)
           window.scrollTo({ top: 0, behavior: 'smooth' })
         }}
+      />
+
+      {/* Travel Journal & Wishlist Modal */}
+      <TravelJournalModal
+        isOpen={isJournalOpen}
+        onClose={() => setIsJournalOpen(false)}
+        onSelectDestination={handleSelectDestination}
       />
 
       {/* Feedback Modal */}

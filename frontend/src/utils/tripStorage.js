@@ -161,3 +161,81 @@ export function generateShareableUrl(tripData) {
   }
   return `${origin}?tripId=${encodeURIComponent(tripData.id || '')}`
 }
+
+// ─── Travel Journal & Memory Timeline ──────────────────────────────────────
+
+const JOURNAL_KEY = 'yatra_travel_journal'
+
+const DEFAULT_SAMPLE_JOURNAL = [
+  {
+    id: 'entry_hampi_sunrise',
+    placeName: 'Matanga Hill, Hampi',
+    visitDate: '2025-11-14',
+    note: 'Woke up at 5:00 AM to climb the boulders. The 360-degree sunrise view over Achyutaraya temple ruins and Tungabhadra river was pure magic!',
+    photoUrl: 'https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=800&q=80',
+    visited: true,
+    rating: 5,
+    createdAt: '2025-11-14T08:00:00.000Z'
+  },
+  {
+    id: 'entry_coorg_coffee',
+    placeName: 'Mandalpatti Peak, Coorg',
+    visitDate: '2025-12-05',
+    note: 'Thrilling 4x4 Jeep ride through mist and dense coffee plantations. Tasted fresh estate filter coffee and piping hot Akki Rotti at the summit!',
+    photoUrl: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80',
+    visited: true,
+    rating: 5,
+    createdAt: '2025-12-05T10:30:00.000Z'
+  }
+]
+
+export function getJournalEntries() {
+  if (typeof window === 'undefined') return []
+  try {
+    const raw = localStorage.getItem(JOURNAL_KEY)
+    if (!raw) {
+      localStorage.setItem(JOURNAL_KEY, JSON.stringify(DEFAULT_SAMPLE_JOURNAL))
+      return DEFAULT_SAMPLE_JOURNAL
+    }
+    return JSON.parse(raw)
+  } catch (err) {
+    console.error('Failed to load journal entries:', err)
+    return []
+  }
+}
+
+export function saveJournalEntry(entry) {
+  const entries = getJournalEntries()
+  const entryId = entry.id || `journal_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`
+  const record = {
+    ...entry,
+    id: entryId,
+    createdAt: entry.createdAt || new Date().toISOString()
+  }
+
+  const existingIdx = entries.findIndex(e => e.id === entryId)
+  if (existingIdx >= 0) {
+    entries[existingIdx] = record
+  } else {
+    entries.unshift(record)
+  }
+
+  try {
+    localStorage.setItem(JOURNAL_KEY, JSON.stringify(entries))
+  } catch (err) {
+    console.error('Failed to save journal entry:', err)
+  }
+  return record
+}
+
+export function deleteJournalEntry(entryId) {
+  const entries = getJournalEntries()
+  const filtered = entries.filter(e => e.id !== entryId)
+  try {
+    localStorage.setItem(JOURNAL_KEY, JSON.stringify(filtered))
+  } catch (err) {
+    console.error('Failed to delete journal entry:', err)
+  }
+  return filtered
+}
+
