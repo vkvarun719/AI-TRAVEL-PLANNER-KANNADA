@@ -1,4 +1,5 @@
 // Calculates approximate road distance & driving duration between Karnataka stops
+// Integrates free OSRM (Open Source Routing Machine) with graceful Haversine fallback
 
 /**
  * Calculates Great-circle distance between two points in km (Haversine formula).
@@ -28,7 +29,8 @@ export function estimateTransitBetweenStops(coordA, coordB, isGhatSection = fals
       distanceKm: 0,
       durationMins: 0,
       formattedDistance: '0 km',
-      formattedDuration: '0 min'
+      formattedDuration: '0 min',
+      pathPoints: []
     }
   }
 
@@ -62,6 +64,62 @@ export function estimateTransitBetweenStops(coordA, coordB, isGhatSection = fals
     distanceKm: roadKm,
     durationMins,
     formattedDistance: `${roadKm} km`,
-    formattedDuration
+    formattedDuration,
+    pathPoints: [
+      [coordA.lat, coordA.lng],
+      [coordB.lat, coordB.lng]
+    ],
+    source: 'Estimate'
   }
+}
+
+/**
+ * Fetches real driving path, distance, and duration from OSRM Demo API (100% Free).
+ * Falls back gracefully to estimateTransitBetweenStops on network errors or timeouts.
+ */
+export async function fetchOsrmRoute(coordA, coordB) {
+  if (!coordA || !coordB) {
+    return estimateTransitBetweenStops(coordA, coordB)
+  }
+
+  const url = `https://router.project-osrm.org/route/v1/driving/${coordA.lng},${coordA.lat};${coordB.lng},${coordB.lat}?overview=full&geometries=geojson`
+
+  try {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 3500)
+    const res = await fetch(url, { signal: controller.signal })
+    clearTimeout(timeoutId)
+
+    if (!res.ok) throw new Error(`OSRM HTTP error: ${res.status}`)
+    const data = await res.json()
+
+    if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+      const route = data.routes[0]
+      const distanceKm = Math.round((route.distance / 1000) * 10) / 10
+      const durationMins = Math.max(3, Math.round(route.duration / 60))
+
+      let formattedDuration = `${durationMins} mins`
+      if (durationMins >= 60) {
+        const hrs = Math.floor(durationMins / 60)
+        const mins = durationMins % 60
+        formattedDuration = mins > 0 ? `${hrs}h ${mins}m` : `${hrs} hrs`
+      }
+
+      // Convert GeoJSON [lng, lat] coordinates to Leaflet [lat, lng]
+      const pathPoints = (route.geometry?.coordinates || []).map(([lng, lat]) => [lat, lng])
+
+      return {
+        distanceKm,
+        durationMins,
+        formattedDistance: `${distanceKm} km`,
+        formattedDuration,
+        pathPoints,
+        source: 'OSRM Road'
+      }
+    }
+  } catch (err) {
+    // Graceful fallback to local estimation on free tier network hiccups
+  }
+
+  return estimateTransitBetweenStops(coordA, coordB)
 }

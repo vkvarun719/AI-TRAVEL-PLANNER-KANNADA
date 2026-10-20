@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import {
@@ -6,7 +6,7 @@ import {
   Car, Utensils, Hotel, Eye, Layers, Sparkles
 } from 'lucide-react'
 import { getCoordinatesForPlace, KARNATAKA_COORDINATES } from '../data/karnatakaCoordinates'
-import { estimateTransitBetweenStops } from '../utils/distanceCalculator'
+import { estimateTransitBetweenStops, fetchOsrmRoute } from '../utils/distanceCalculator'
 import { useLanguage } from '../context/LanguageContext'
 
 // Fix default leaflet marker icon issue in bundlers
@@ -19,13 +19,17 @@ L.Icon.Default.mergeOptions({
 
 export default function DayMapViewer({ startingPoint = 'Bangalore', itinerary = [] }) {
   const { language, t } = useLanguage()
+  const isKn = language === 'kn'
+
   const mapContainerRef = useRef(null)
   const mapInstanceRef = useRef(null)
   const markersLayerRef = useRef(null)
   const polylineLayerRef = useRef(null)
 
-  const [selectedDay, setSelectedDay] = useState(1) // 0 means All Days, 1, 2, 3...
+  const [selectedDay, setSelectedDay] = useState(1) // 0 = All Days, 1, 2, 3...
   const [activeStopIndex, setActiveStopIndex] = useState(0)
+  const [osrmLegs, setOsrmLegs] = useState([])
+  const [isRoutingLoading, setIsRoutingLoading] = useState(false)
 
   // Build structured stops list per day
   const daysData = itinerary.map((dayPlan, dayIdx) => {
@@ -96,7 +100,7 @@ export default function DayMapViewer({ startingPoint = 'Bangalore', itinerary = 
       })
     }
 
-    // Calculate transit segments between consecutive stops for this day
+    // Fast static estimate for transit segments
     const transitSegments = []
     let totalDayKm = 0
     let totalDayMins = 0
@@ -122,11 +126,7 @@ export default function DayMapViewer({ startingPoint = 'Bangalore', itinerary = 
     }
   })
 
-  // Determine which stops to display based on selectedDay (0 = all, 1+ = specific day)
-  const displayedDays = selectedDay === 0
-    ? daysData
-    : daysData.filter(d => d.day === selectedDay)
-
+  // Selected day data
   const activeDayObj = daysData.find(d => d.day === selectedDay) || daysData[0] || { stops: [], transitSegments: [] }
   const displayedStops = selectedDay === 0
     ? daysData.flatMap(d => d.stops)
@@ -136,7 +136,6 @@ export default function DayMapViewer({ startingPoint = 'Bangalore', itinerary = 
   useEffect(() => {
     if (!mapContainerRef.current) return
 
-    // If map already initialized, cleanup previous instance
     if (mapInstanceRef.current) {
       mapInstanceRef.current.remove()
       mapInstanceRef.current = null
@@ -149,7 +148,7 @@ export default function DayMapViewer({ startingPoint = 'Bangalore', itinerary = 
       scrollWheelZoom: false,
     })
 
-    // OpenStreetMap free tile layer
+    // Free OpenStreetMap tile layer (no API key required)
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors',
       maxZoom: 18,
@@ -170,7 +169,7 @@ export default function DayMapViewer({ startingPoint = 'Bangalore', itinerary = 
     }
   }, [])
 
-  // Update Markers & Polyline whenever selectedDay or itinerary changes
+  // Update Numbered Markers and Fetch OSRM Road Route
   useEffect(() => {
     const map = mapInstanceRef.current
     const markersGroup = markersLayerRef.current
@@ -185,51 +184,57 @@ export default function DayMapViewer({ startingPoint = 'Bangalore', itinerary = 
 
     const latLngs = []
 
+    // 1. Render Numbered Markers (1, 2, 3...)
     displayedStops.forEach((stop, idx) => {
       const latLng = [stop.coords.lat, stop.coords.lng]
       latLngs.push(latLng)
 
-      // Create custom badge HTML marker icon
+      const markerNumber = idx + 1
       const iconHtml = `
         <div style="
-          background-color: ${stop.color};
+          background: linear-gradient(135deg, ${stop.color}, #1c1917);
           color: white;
-          width: 30px;
-          height: 30px;
+          width: 32px;
+          height: 32px;
           border-radius: 50%;
           border: 2.5px solid white;
-          box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.35);
           display: flex;
           align-items: center;
           justify-content: center;
           font-weight: 900;
-          font-size: 11px;
-          font-family: sans-serif;
+          font-size: 13px;
+          font-family: system-ui, -apple-system, sans-serif;
           cursor: pointer;
         ">
-          ${stop.type === 'food' ? '🍲' : stop.type === 'stay' ? '🏨' : stop.order}
+          ${markerNumber}
         </div>
       `
 
       const customIcon = L.divIcon({
         html: iconHtml,
-        className: 'custom-leaflet-pin',
-        iconSize: [30, 30],
-        iconAnchor: [15, 15],
-        popupAnchor: [0, -16]
+        className: 'custom-leaflet-numbered-pin',
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+        popupAnchor: [0, -18]
       })
 
       const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.name + ' Karnataka')}`
 
       const popupContent = `
-        <div style="font-family: sans-serif; min-width: 190px; padding: 2px;">
-          <div style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: ${stop.color}; margin-bottom: 2px;">
-            ${stop.type === 'attraction' ? 'Key Sight' : stop.type === 'food' ? 'Local Eatery' : 'Accomodation'}
+        <div style="font-family: system-ui, sans-serif; min-width: 200px; padding: 2px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px;">
+            <span style="font-size: 10px; font-weight: 900; text-transform: uppercase; color: ${stop.color};">
+              Stop #${markerNumber} • ${stop.type === 'attraction' ? 'Sight' : stop.type === 'food' ? 'Dining' : 'Stay'}
+            </span>
+            <span style="font-size: 10px; background: #f5f5f4; color: #44403c; padding: 1px 6px; border-radius: 6px; font-weight: bold;">
+              ${stop.badge || ''}
+            </span>
           </div>
-          <div style="font-size: 13px; font-weight: 900; color: #1C1917; margin-bottom: 4px;">
+          <div style="font-size: 13px; font-weight: 900; color: #1c1917; margin-bottom: 4px;">
             ${stop.name}
           </div>
-          <div style="font-size: 11px; color: #44403C; line-height: 1.3; margin-bottom: 8px;">
+          <div style="font-size: 11px; color: #57534e; line-height: 1.35; margin-bottom: 8px;">
             ${stop.details || ''}
           </div>
           <a href="${googleMapsUrl}" target="_blank" rel="noopener noreferrer" style="
@@ -255,72 +260,132 @@ export default function DayMapViewer({ startingPoint = 'Bangalore', itinerary = 
       markersGroup.addLayer(marker)
     })
 
-    // Draw route connecting polyline
-    if (latLngs.length > 1) {
-      const polyline = L.polyline(latLngs, {
-        color: selectedDay === 0 ? '#C8102E' : '#F5A623',
-        weight: 3.5,
-        opacity: 0.85,
-        dashArray: '6, 8',
-        lineCap: 'round',
-        lineJoin: 'round'
-      })
-      polylineGroup.addLayer(polyline)
-    }
-
-    // Fit map bounds with smooth animation
+    // Fit map bounds
     if (latLngs.length > 0) {
       const bounds = L.latLngBounds(latLngs)
       map.fitBounds(bounds, { padding: [45, 45], maxZoom: 13 })
     }
+
+    // 2. Fetch OSRM Road Routes between consecutive stops asynchronously
+    let isCancelled = false
+    const loadRoadRoutes = async () => {
+      setIsRoutingLoading(true)
+      const legs = []
+      const allPathPoints = []
+
+      for (let i = 0; i < displayedStops.length - 1; i++) {
+        const fromStop = displayedStops[i]
+        const toStop = displayedStops[i + 1]
+        const routeData = await fetchOsrmRoute(fromStop.coords, toStop.coords)
+
+        if (isCancelled) return
+
+        legs.push({
+          from: fromStop.name,
+          to: toStop.name,
+          orderFrom: i + 1,
+          orderTo: i + 2,
+          distanceKm: routeData.distanceKm,
+          formattedDistance: routeData.formattedDistance,
+          durationMins: routeData.durationMins,
+          formattedDuration: routeData.formattedDuration,
+          source: routeData.source
+        })
+
+        if (routeData.pathPoints && routeData.pathPoints.length > 0) {
+          allPathPoints.push(...routeData.pathPoints)
+        }
+      }
+
+      setOsrmLegs(legs)
+      setIsRoutingLoading(false)
+
+      // Draw real road polyline or fallback straight lines
+      if (!isCancelled && polylineGroup) {
+        polylineGroup.clearLayers()
+        if (allPathPoints.length > 1) {
+          const polyline = L.polyline(allPathPoints, {
+            color: selectedDay === 0 ? '#C8102E' : '#F5A623',
+            weight: 4,
+            opacity: 0.9,
+            lineCap: 'round',
+            lineJoin: 'round'
+          })
+          polylineGroup.addLayer(polyline)
+        } else if (latLngs.length > 1) {
+          const fallbackPolyline = L.polyline(latLngs, {
+            color: '#F5A623',
+            weight: 3.5,
+            dashArray: '6, 8'
+          })
+          polylineGroup.addLayer(fallbackPolyline)
+        }
+      }
+    }
+
+    loadRoadRoutes()
+    return () => {
+      isCancelled = true
+    }
   }, [selectedDay, itinerary])
 
   const totalTripKm = daysData.reduce((acc, d) => acc + d.totalDayKm, 0)
+  const currentLegs = osrmLegs.length > 0 ? osrmLegs : (activeDayObj.transitSegments || [])
+  const currentDayKm = currentLegs.reduce((acc, leg) => acc + (leg.distanceKm || 0), 0)
+
   const googleMapsRouteUrl = `https://www.google.com/maps/dir/${displayedStops
-    .map(s => encodeURIComponent(s.name))
+    .map(s => encodeURIComponent(s.name + ' Karnataka'))
     .join('/')}`
 
   return (
-    <div className="card border border-stone-200/90 bg-white shadow-sm p-4 sm:p-5 rounded-2xl space-y-4">
+    <div className="card border border-stone-200/90 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-sm p-4 sm:p-5 rounded-2xl space-y-4">
       {/* Header Bar */}
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-karnataka-green/15 flex items-center justify-center text-karnataka-green">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-karnataka-green/15 text-karnataka-green flex items-center justify-center">
             <Compass size={16} />
           </div>
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-stone-500">
-              Interactive Route Map (Leaflet & OSM)
+            <h4 className="text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400">
+              {isKn ? 'ದಿನವಾರು ಮಾರ್ಗ ನಕ್ಷೆ (Leaflet + OpenStreetMap)' : 'Interactive Day Route Map (Leaflet + OSM)'}
             </h4>
-            <div className="text-xs font-black text-stone-900">
-              {displayedStops.length} Mapped Stops • ~{Math.round(totalTripKm)} km Total Circuit
+            <div className="text-xs font-black text-stone-900 dark:text-white flex items-center gap-2">
+              <span>{displayedStops.length} {isKn ? 'ನಿಲ್ದಾಣಗಳು' : 'Numbered Stops'}</span>
+              <span>•</span>
+              <span className="text-karnataka-red font-bold">~{Math.round(currentDayKm || totalTripKm)} km {isKn ? 'ರಸ್ತೆ ದೂರ' : 'Total Leg'}</span>
+              {isRoutingLoading && (
+                <span className="text-[10px] text-amber-600 dark:text-amber-400 font-normal animate-pulse">
+                  (Calculating OSRM routes...)
+                </span>
+              )}
             </div>
           </div>
         </div>
 
+        {/* Google Maps External Directions Link */}
         <a
           href={googleMapsRouteUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-karnataka-red hover:underline"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-300 hover:bg-amber-100 transition-colors shadow-2xs"
         >
-          <span>Open Full Route in Google Maps</span>
           <ExternalLink size={12} />
+          <span>{isKn ? 'ಗೂಗಲ್ ಮ್ಯಾಪ್ಸ್‌ನಲ್ಲಿ ತೆರೆಯಿರಿ' : 'Open Route in Google Maps'}</span>
         </a>
       </div>
 
-      {/* Day Switcher Tabs */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 bg-stone-100 p-1 rounded-xl">
+      {/* Day Selector Tabs */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
         <button
           type="button"
           onClick={() => setSelectedDay(0)}
-          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
             selectedDay === 0
-              ? 'bg-white text-stone-900 shadow-2xs font-extrabold'
-              : 'text-stone-500 hover:text-stone-800'
+              ? 'bg-karnataka-red text-white shadow-xs'
+              : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700'
           }`}
         >
-          All Days Overview
+          {isKn ? 'ಎಲ್ಲಾ ದಿನಗಳು' : 'All Days'}
         </button>
 
         {daysData.map((d) => (
@@ -328,107 +393,85 @@ export default function DayMapViewer({ startingPoint = 'Bangalore', itinerary = 
             key={d.day}
             type="button"
             onClick={() => setSelectedDay(d.day)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
               selectedDay === d.day
-                ? 'bg-white text-karnataka-red shadow-2xs font-extrabold'
-                : 'text-stone-500 hover:text-stone-800'
+                ? 'bg-karnataka-gold text-stone-900 shadow-xs'
+                : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700'
             }`}
           >
-            Day {d.day} Stops
+            <span>{isKn ? `ದಿನ ${d.day}` : `Day ${d.day}`}</span>
+            <span className="text-[10px] opacity-75">({d.stops.length})</span>
           </button>
         ))}
       </div>
 
       {/* Leaflet Map Canvas */}
-      <div className="relative w-full h-72 sm:h-80 rounded-2xl overflow-hidden border border-stone-200 shadow-inner z-0">
-        <div ref={mapContainerRef} className="w-full h-full" />
-        
-        {/* Floating Map Legend */}
-        <div className="absolute top-3 right-3 z-[400] bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-stone-200/80 shadow-sm text-[10px] font-bold text-stone-700 flex items-center gap-3">
+      <div className="relative rounded-2xl overflow-hidden border border-stone-200 dark:border-stone-800 shadow-inner">
+        <div ref={mapContainerRef} className="h-72 sm:h-96 w-full z-10" />
+
+        {/* Legend Overlay */}
+        <div className="absolute bottom-3 left-3 z-20 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md px-3 py-2 rounded-xl border border-stone-200/80 dark:border-stone-700 shadow-md text-[10px] font-bold text-stone-700 dark:text-stone-300 flex items-center gap-3">
           <span className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-karnataka-red" /> Sight
+            <span className="w-2.5 h-2.5 rounded-full bg-red-600 inline-block" /> Sight
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> Food
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block" /> Food
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" /> Stay
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 inline-block" /> Stay
           </span>
+          <span className="text-stone-400 font-normal">| OSRM Road Path</span>
         </div>
       </div>
 
-      {/* Day Distance & Driving Time Estimates */}
-      {selectedDay !== 0 && activeDayObj.transitSegments.length > 0 && (
-        <div className="p-3.5 bg-stone-50 rounded-xl border border-stone-200/70 space-y-2">
-          <div className="flex items-center justify-between text-xs font-bold text-stone-700">
-            <span className="flex items-center gap-1.5">
-              <Car size={14} className="text-karnataka-red" />
-              <span>Day {selectedDay} Transit Estimates:</span>
-            </span>
-            <span className="text-[11px] font-black text-stone-900 bg-white px-2 py-0.5 rounded-md border border-stone-200">
-              ~{activeDayObj.totalDayKm} km • ~{Math.round(activeDayObj.totalDayMins / 60 * 10) / 10} hrs drive
-            </span>
+      {/* Approximate Distance & Drive Time Per Leg */}
+      {currentLegs.length > 0 && (
+        <div className="space-y-2 pt-1">
+          <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
+            <span>{isKn ? 'ನಿಲ್ದಾಣಗಳ ನಡುವಿನ ಅಂತರ ಮತ್ತು ಪ್ರಯಾಣ ಸಮಯ' : 'Transit Legs & Drive Times (OSRM Road Routing)'}</span>
+            <span className="text-karnataka-green text-[10px]">Free Open Routing</span>
           </div>
 
-          {/* Sequential Segments */}
-          <div className="space-y-1.5">
-            {activeDayObj.transitSegments.map((seg, sIdx) => (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {currentLegs.map((segment, idx) => (
               <div
-                key={sIdx}
-                className="flex items-center justify-between text-[11px] text-stone-600 bg-white p-2 rounded-lg border border-stone-100"
+                key={idx}
+                className="p-2.5 rounded-xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200/70 dark:border-stone-700 text-xs space-y-1 shadow-2xs"
               >
-                <div className="flex items-center gap-1.5 truncate pr-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
-                  <span className="font-semibold text-stone-800 truncate">{seg.from}</span>
-                  <span className="text-stone-400">➔</span>
-                  <span className="font-semibold text-stone-800 truncate">{seg.to}</span>
+                <div className="flex items-center justify-between font-bold text-stone-800 dark:text-stone-100">
+                  <span className="truncate pr-1">
+                    <span className="w-4 h-4 rounded-full bg-stone-200 dark:bg-stone-700 text-stone-700 dark:text-stone-200 inline-flex items-center justify-center text-[10px] mr-1">
+                      {segment.orderFrom || idx + 1}
+                    </span>
+                    {segment.from}
+                  </span>
+                  <span className="text-stone-400 shrink-0">➔</span>
+                  <span className="truncate pl-1">
+                    <span className="w-4 h-4 rounded-full bg-stone-200 dark:bg-stone-700 text-stone-700 dark:text-stone-200 inline-flex items-center justify-center text-[10px] mr-1">
+                      {segment.orderTo || idx + 2}
+                    </span>
+                    {segment.to}
+                  </span>
                 </div>
-                <div className="text-[10px] font-mono font-bold text-stone-500 flex items-center gap-1 flex-shrink-0">
-                  <Clock size={10} />
-                  <span>{seg.formattedDistance} ({seg.formattedDuration})</span>
+
+                <div className="flex items-center justify-between text-[11px] text-stone-500 dark:text-stone-400 pt-0.5 border-t border-stone-100 dark:border-stone-700/60">
+                  <span className="flex items-center gap-1 font-semibold text-stone-700 dark:text-stone-300">
+                    <Car size={11} className="text-karnataka-red" />
+                    <span>{segment.formattedDistance || `${segment.distanceKm} km`}</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Clock size={11} className="text-amber-600" />
+                    <span>~{segment.formattedDuration}</span>
+                  </span>
+                  <span className="text-[9px] text-stone-400 font-mono">
+                    {segment.source || 'Road'}
+                  </span>
                 </div>
               </div>
             ))}
           </div>
         </div>
       )}
-
-      {/* Stops List */}
-      <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
-        {displayedStops.map((stop, sIdx) => {
-          const gMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.name + ' Karnataka')}`
-
-          return (
-            <div
-              key={sIdx}
-              className="flex items-center justify-between p-2 rounded-xl border border-stone-100 hover:bg-stone-50 transition-all text-xs"
-            >
-              <div className="flex items-center gap-2 truncate pr-2">
-                <span
-                  className="w-5 h-5 rounded-full text-white flex items-center justify-center text-[10px] font-black flex-shrink-0"
-                  style={{ backgroundColor: stop.color }}
-                >
-                  {stop.type === 'food' ? '🍲' : stop.type === 'stay' ? '🏨' : stop.order}
-                </span>
-                <span className="font-bold text-stone-800 truncate">{stop.name}</span>
-                <span className="text-[10px] text-stone-400 font-medium truncate hidden sm:inline">
-                  • {stop.details}
-                </span>
-              </div>
-
-              <a
-                href={gMapsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-[11px] font-bold text-karnataka-red hover:underline flex-shrink-0"
-              >
-                <span>Maps</span>
-                <ExternalLink size={10} />
-              </a>
-            </div>
-          )
-        })}
-      </div>
     </div>
   )
 }
