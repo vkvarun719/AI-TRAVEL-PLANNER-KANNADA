@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="kg512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#C8102E"/>
+      <stop offset="50%" stop-color="#E53E3E"/>
+      <stop offset="100%" stop-color="#F5A623"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#kg512)"/>
+  <!-- Map Pin Symbol -->
+  <path d="M256 100 C200 100 155 145 155 201 C155 276 256 400 256 400 C256 400 357 276 357 201 C357 145 312 100 256 100 Z" fill="#ffffff" opacity="0.95"/>
+  <!-- Inner Compass Star / Eye -->
+  <circle cx="256" cy="201" r="42" fill="#C8102E"/>
+  <circle cx="256" cy="201" r="21" fill="#F5A623"/>
+</svg>

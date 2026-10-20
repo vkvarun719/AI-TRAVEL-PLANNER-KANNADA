@@ -8,6 +8,9 @@ const API = axios.create({
 export const generateItinerary = (payload) =>
   API.post('/api/generate-itinerary', payload)
 
+export const regenerateDay = (payload) =>
+  API.post('/api/regenerate-day', payload)
+
 export const listItineraries = () =>
   API.get('/api/itineraries')
 

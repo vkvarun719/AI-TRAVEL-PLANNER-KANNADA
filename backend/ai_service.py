@@ -2,30 +2,23 @@ import os
 import json
 import httpx
 from dotenv import load_dotenv
-from models import ItineraryRequest
+from models import ItineraryRequest, RegenerateDayRequest
 
 load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-MODEL_NAME = "gemini-3-flash-preview"
+MODEL_NAME = "gemini-1.5-flash"
 
 KARNATAKA_SYSTEM_PROMPT = """
 You are an expert Karnataka travel guide with deep, hyper-local knowledge built over 20 years.
-You know every district, every chai shop on SH-17, every pothole-prone stretch during monsoon.
+You know every district, every heritage monument, every chai shop on SH-17, every pothole-prone stretch during monsoon.
 
 CRITICAL KARNATAKA-SPECIFIC KNOWLEDGE YOU MUST USE:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-ROUTES & ROADS:
-- NH-75 (Bangalore→Mangalore via Hassan) — scenic ghats section after Sakleshpur (Shiradi Ghat).
-- SH-17 (Sirsi→Kumta) — lush Western Ghats greenery, Yana rock monoliths detour is mandatory.
-- NH-167 (Mysore→Ooty) — Bandipur night driving ban 9PM–6AM strictly enforced.
-- Coorg roads during monsoon (Jun–Sep): landslide-prone near Madikeri–Virajpet; always check KSRTC updates.
-- Hampi: hire a coracle (circular boat) to cross Tungabhadra River to Virupapura Gaddi village.
-
 SEASONAL INTELLIGENCE:
-- Monsoon (Jun–Sep): Coorg, Agumbe (King Cobra country), Jog Falls peak flow.
-- Winter (Oct–Feb): Hampi, Badami, Pattadakal, Belur-Halebidu, Mysore Dasara in October.
-- Summer (Mar–May): Beaches — Gokarna, Murudeshwar, Karwar, Malpe.
+- Monsoon (Jun–Sep): Coorg, Agumbe (King Cobra country), Jog Falls peak flow, Western Ghats waterfalls. Roads can be landslide-prone near Madikeri-Virajpet and Shiradi Ghat. Recommend rain gear, waterproof bags, leech socks.
+- Winter (Oct–Feb): Best season for Hampi, Badami, Pattadakal, Belur-Halebidu, Mysore Dasara in October, wildlife safaris at Bandipur and Nagarhole. Crisp mornings, pleasant sunshine.
+- Summer (Mar–May): Warm in North Karnataka and plains. Coastal beaches (Gokarna, Murudeshwar, Karwar, Malpe) in early morning / sunset hours. Hill stations (Chikmagalur, Kemmanagundi, Coorg, BR Hills) for pleasant climate.
 
 HERITAGE TIMINGS & TICKETS:
 - Hampi ASI monuments: 6:00 AM – 6:00 PM. Virupaksha: 6AM–1PM, 3PM–8PM.
@@ -34,32 +27,48 @@ HERITAGE TIMINGS & TICKETS:
 - Mysore Palace: Illumination 7:00 PM – 7:45 PM on Sundays and public holidays.
 
 AUTHENTIC RESTAURANTS & FOOD SPOTS:
-- Bangalore: MTR (Lalbagh) for rava idli; Vidyarthi Bhavan (Gandhi Bazaar) for crispy masala dosa; Nagarjuna (Residency Rd) for Andhra-style biryani.
-- Mysore: Hotel RRR (Nazarbad) for spicy mutton biryani on banana leaf; Vinayaka Mylari (Agrahara) for melt-in-mouth butter dosas.
-- Mangalore: Shetty Lunch Home (Balmatta) for Kori Rotti & Anjal Fish Fry; Giri Manja's for seafood thali.
+- Bangalore: MTR (Lalbagh) for rava idli; Vidyarthi Bhavan (Gandhi Bazaar) for crispy masala dosa; CTR (Malleshwaram) for benne dosa.
+- Mysore: Hotel RRR (Nazarbad) for spicy mutton biryani on banana leaf; Vinayaka Mylari (Agrahara) for melt-in-mouth butter dosas; Guru Sweets for original Mysore Pak.
+- Mangalore: Shetty Lunch Home (Balmatta) for Kori Rotti & Anjal Fish Fry; Giri Manja's for seafood thali; Taj Mahal Cafe for Mangalore Buns.
 - Udupi: Mitra Samaj (near Car Street) for goli baje & authentic Udupi filter coffee; Woodlands.
 - Coorg (Madikeri): Coorg Cuisine for Pandi (pork) Curry & Kadambuttu; Raintree for cozy plantation dining.
-- Dharwad: Mishra Pedha shop near Old Bus Stand for GI-tagged Dharwad Pedha; Hotel Dwaraka in Hubli for North Karnataka Jolada Rotti Oota with Enne Badane.
-- Hampi: Mango Tree Restaurant; Laughing Buddha (across river) for riverside Israeli and South Indian thalis.
-
-RECOMMENDED ACCOMMODATION HUBS:
-- Coorg: Coffee estate homestays in Siddapur or Galibeedu (e.g., School Thota, Tamara, Evolve Back, or budget homestays ₹2,000–₹4,500/night).
-- Hampi: Heritage guesthouses in Kamalapura (KSTDC Hotel Mayura Bhuvaneshwari) or luxury at Evolve Back Kamalapura Palace; Sanapur village cottages.
-- Mysore: Grand Mercure or heritage stay at Lalitha Mahal Palace; budget boutique stays on Lalitha Mahal Road.
-- Chikmagalur: Coffee plantation homestays on Mullayanagiri foothills (The Serai, Java Rain, or Zostel Chikmagalur).
-- Gokarna: Kahani Paradise or Kudle Beach shacks / Namaste Cafe on Om Beach.
-
-BUDGET GUIDELINES:
-- Budget: ₹1,500–₹2,500/day
-- Mid-range: ₹3,500–₹6,000/day
-- Luxury: ₹8,000–₹25,000/day
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Dharwad & Hubli: Mishra Pedha / Babu Singh Thakur shop for GI-tagged Dharwad Pedha; Hotel Dwaraka in Hubli for North Karnataka Jolada Rotti Oota with Enne Badane.
+- Hampi: Mango Tree Restaurant; Laughing Buddha (across river) for riverside South Indian and Israeli thalis.
+- Davanagere: Sri Guru Kottureshwara for crispy wood-fired Benne Dosa.
 
 OUTPUT FORMAT — Return ONLY valid JSON, no markdown fences, no extra text:
 {
   "summary": "2-3 sentence trip overview mentioning specific Karnataka places",
   "best_time_to_visit": "Specific month range with reasoning",
-  "packing_tips": "Karnataka-specific packing advice",
+  "packing_tips": "Karnataka-specific packing advice tailored to the season and activities",
+  "cost_breakdown": {
+    "stay": 6000,
+    "food": 4500,
+    "transport": 3000,
+    "activities": 1500,
+    "total": 15000,
+    "currency": "INR"
+  },
+  "season_info": {
+    "season_name": "Monsoon / Winter / Summer",
+    "weather_summary": "1-2 sentences on weather during the traveler's month",
+    "destination_weather_notes": [
+      {
+        "destination": "Destination name",
+        "note": "Specific weather advice for this month",
+        "temperature_range": "20°C - 28°C"
+      }
+    ]
+  },
+  "local_food_trail": [
+    {
+      "dish_name": "Specific regional dish name",
+      "regional_origin": "Region (e.g. Karavali, Malnad, Uttara Karnataka, Old Mysore)",
+      "iconic_spot": "Famous authentic restaurant / eatery name & town",
+      "description": "Why this dish is iconic and how it's prepared",
+      "vegetarian": true
+    }
+  ],
   "itinerary": [
     {
       "day": 1,
@@ -113,20 +122,56 @@ OUTPUT FORMAT — Return ONLY valid JSON, no markdown fences, no extra text:
 
 
 def build_user_prompt(req: ItineraryRequest) -> str:
+    lang_instruction = ""
+    if req.language == "kn" or (req.language and "kannada" in req.language.lower()):
+        lang_instruction = """
+MANDATORY KANNADA LANGUAGE REQUIREMENT:
+The traveler has selected KANNADA (ಕನ್ನಡ) language.
+You MUST write all textual content, descriptions, and titles in natural, fluent, and authentic Kannada script (ಕನ್ನಡ ಲಿಪಿ).
+- "summary", "best_time_to_visit", "packing_tips" in Kannada script.
+- For every day in "itinerary": "title", "morning", "afternoon", "evening", "tips", "estimated_cost" in Kannada script.
+- For "stay": "name", "type", "area", "approx_price", "why_special" in Kannada script.
+- For "places_to_visit": "name", "best_time", "entry_fee", "highlight" in Kannada script.
+- For "where_to_eat": "name", "dish", "meal_type", "approx_cost", "address_or_area" in Kannada script.
+- For "local_food_trail": "dish_name", "regional_origin", "iconic_spot", "description" in Kannada script.
+- For "season_info": "season_name", "weather_summary", and "destination_weather_notes" note and destination in Kannada script.
+CRITICAL: Keep all JSON object keys in English (e.g. "summary", "itinerary", "cost_breakdown", "season_info", "stay", "places_to_visit") so the system can parse the JSON structure, but all string values must be in Kannada!
+"""
+
     return f"""
-Plan a {req.days}-day Karnataka trip for a traveler starting from {req.starting_point}.
+Plan a {req.days}-day Karnataka trip for {req.travelers} traveler(s) starting from {req.starting_point}.
 
 TRIP PARAMETERS:
 - Duration: {req.days} days
+- Number of Travelers: {req.travelers}
+- Travel Month: {req.travel_month or 'October'}
 - Budget Category: {req.budget}
+- Preferred Vibe: {req.vibe or 'Relaxed'} (Options: Relaxed, Adventure, Spiritual, Family, Budget, Luxury, Cultural)
 - Interests: {', '.join(req.interests)}
 - Travel Style: {req.travel_style}
+- Language: {req.language}
+
+{lang_instruction}
+
+SEASON & WEATHER INTELLIGENCE:
+- The trip takes place in {req.travel_month or 'October'}.
+- Provide a `season_info` object with the appropriate season (Monsoon, Winter, or Summer) and realistic destination weather notes with expected temperature range.
+- Provide `packing_tips` tailored to {req.travel_month or 'October'} in Karnataka (e.g., umbrella/waterproof jacket in monsoon, sunscreen in summer, light woolens in winter mornings).
+
+COST BREAKDOWN:
+- Calculate an estimated `cost_breakdown` in INR for the total trip for {req.travelers} traveler(s):
+  `stay`: accommodation cost for {req.days - 1 if req.days > 1 else 1} nights
+  `food`: meals and snacks for {req.days} days
+  `transport`: fuel, cabs, KSRTC or train travel
+  `activities`: monument entry fees, boating, guide charges
+  `total`: sum of the above
 
 CRUCIAL REQUIREMENTS:
-For EVERY day in the itinerary, you MUST include:
-1. `stay`: A specific, real hotel, homestay, or resort name matching their budget category with exact area, price range, and why it's special.
-2. `places_to_visit`: Exactly 2 to 3 prominent sights or hidden gems for that day with timings, entry fees, and highlights.
-3. `where_to_eat`: Exactly 2 authentic, local culinary food spots (not generic chains) with their must-try signature dishes and price for two.
+1. `local_food_trail`: Include 2 to 4 prominent signature dishes along this route with where to taste them and whether they are vegetarian.
+2. For EVERY day in the itinerary, include:
+   - `stay`: Specific real hotel, homestay, or resort name matching their budget with area and price.
+   - `places_to_visit`: Exactly 2 to 3 prominent sights or hidden gems with timings, entry fees, and highlights.
+   - `where_to_eat`: Exactly 2 authentic local eateries (not generic chains) with signature dishes and cost.
 
 Return ONLY the raw JSON object as specified. Do NOT wrap inside ```json markdown fences.
 """
@@ -145,7 +190,8 @@ async def generate_itinerary(req: ItineraryRequest) -> dict:
             }
         ],
         "generationConfig": {
-            "temperature": 0.7
+            "temperature": 0.7,
+            "responseMimeType": "application/json"
         }
     }
 
@@ -160,6 +206,119 @@ async def generate_itinerary(req: ItineraryRequest) -> dict:
 
     raw_text = candidates[0]["content"]["parts"][0]["text"].strip()
 
+    if "```" in raw_text:
+        parts = raw_text.split("```")
+        for p in parts:
+            p = p.strip()
+            if p.startswith("json"):
+                p = p[4:].strip()
+            if p.startswith("{") and p.endswith("}"):
+                raw_text = p
+                break
+
+    return json.loads(raw_text)
+
+
+async def regenerate_single_day(req: RegenerateDayRequest) -> dict:
+    """
+    Regenerates a fresh alternative DayPlan for a single day in the itinerary.
+    """
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL_NAME}:generateContent?key={GEMINI_API_KEY}"
+
+    lang_instruction = ""
+    if req.language == "kn" or (req.language and "kannada" in req.language.lower()):
+        lang_instruction = "MANDATORY: Write all titles, plans, tips, stay, food, and attractions in fluent Kannada script (ಕನ್ನಡ ಲಿಪಿ). JSON keys must remain in English."
+
+    prompt = f"""
+{KARNATAKA_SYSTEM_PROMPT}
+
+TASK: REGENERATE DAY {req.day} ONLY.
+Provide a FRESH, ALTERNATIVE DayPlan for Day {req.day} of a trip in Karnataka.
+Do NOT repeat the exact places and eateries from the previous version: "{req.current_day_title or ''}".
+
+TRIP CONTEXT:
+- Base / Hub: {req.starting_point}
+- Day Number: {req.day} of {req.days}
+- Budget: {req.budget}
+- Vibe: {req.vibe or 'Relaxed'}
+- Month: {req.travel_month or 'October'}
+- Number of travelers: {req.travelers}
+- Other Days Overview: {', '.join(req.other_days_context or [])}
+{lang_instruction}
+
+OUTPUT FORMAT — Return ONLY a single JSON object for DayPlan:
+{{
+  "day": {req.day},
+  "title": "Fresh evocative day title",
+  "morning": "Detailed fresh morning plan with timings and places",
+  "afternoon": "Detailed afternoon plan",
+  "evening": "Detailed evening plan with dinner recommendation",
+  "tips": "Hyper-local insider tip for this alternative plan",
+  "estimated_cost": "₹X–₹Y per person",
+  "stay": {{
+    "name": "Recommended Hotel or Homestay name",
+    "type": "Heritage / Homestay / Boutique",
+    "area": "Specific locality or town",
+    "approx_price": "₹X,XXX - ₹Y,YYY / night",
+    "why_special": "1 sentence why this stay fits"
+  }},
+  "places_to_visit": [
+    {{
+      "name": "Alternative attraction name",
+      "best_time": "Optimal time of day",
+      "entry_fee": "Ticket cost",
+      "highlight": "Key highlight"
+    }},
+    {{
+      "name": "Second alternative attraction name",
+      "best_time": "Optimal time of day",
+      "entry_fee": "Ticket cost",
+      "highlight": "Key highlight"
+    }}
+  ],
+  "where_to_eat": [
+    {{
+      "name": "Alternative iconic restaurant name",
+      "dish": "Signature local dish to order",
+      "meal_type": "Breakfast / Lunch / Dinner",
+      "approx_cost": "₹XXX for two",
+      "address_or_area": "Locality"
+    }},
+    {{
+      "name": "Second local food spot",
+      "dish": "Signature dish",
+      "meal_type": "Lunch / Dinner",
+      "approx_cost": "₹XXX for two",
+      "address_or_area": "Locality"
+    }}
+  ]
+}}
+"""
+
+    payload = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": prompt}
+                ]
+            }
+        ],
+        "generationConfig": {
+            "temperature": 0.85,
+            "responseMimeType": "application/json"
+        }
+    }
+
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        response = await client.post(url, json=payload)
+        response.raise_for_status()
+        res_json = response.json()
+
+    candidates = res_json.get("candidates", [])
+    if not candidates:
+        raise ValueError("No response generated by Gemini model.")
+
+    raw_text = candidates[0]["content"]["parts"][0]["text"].strip()
     if "```" in raw_text:
         parts = raw_text.split("```")
         for p in parts:

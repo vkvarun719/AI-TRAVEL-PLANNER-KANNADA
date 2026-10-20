@@ -2,15 +2,63 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Yatra AI – Karnataka Travel Planner</title>
+    <link rel="icon" type="image/svg+xml" href="/icon-192.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <title>Yatra AI – Karnataka Travel Planner & Local Heritage Explorer</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="AI-Powered hyper-local Karnataka travel planner. Custom itineraries for Hampi, Coorg, Western Ghats, Gokarna, Badami, and Mysuru with Kannada phrases, food trails, and road logistics." />
+    <meta name="keywords" content="Karnataka travel planner, AI trip planner, Hampi itinerary, Coorg trip, Gokarna beaches, Western Ghats road trip, Kannada travel phrasebook, KSRTC bus, local food trail Karnataka" />
+    <meta name="author" content="Yatra AI Team" />
+    <link rel="canonical" href="https://yatra-karnataka.vercel.app/" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://yatra-karnataka.vercel.app/" />
+    <meta property="og:title" content="Yatra AI – Karnataka Travel Planner & Local Heritage Explorer" />
+    <meta property="og:description" content="AI-Powered hyper-local Karnataka travel planner. Custom day-by-day routes with Kannada audio phrases, regional food trails, and Ghats logistics." />
+    <meta property="og:image" content="https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=1200&q=80" />
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://yatra-karnataka.vercel.app/" />
+    <meta name="twitter:title" content="Yatra AI – Karnataka Travel Planner" />
+    <meta name="twitter:description" content="AI-Powered hyper-local Karnataka travel planner with Kannada phrases, food trails, and road logistics." />
+    <meta name="twitter:image" content="https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=1200&q=80" />
+
+    <!-- PWA & Mobile Icons -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#C8102E" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Yatra AI" />
+    <link rel="apple-touch-icon" href="/icon-192.svg" />
+
+    <!-- Structured Data (JSON-LD) for Search Engines -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TouristTrip",
+      "name": "Yatra AI Karnataka Travel Planner",
+      "description": "Custom day-by-day Karnataka itineraries with local heritage, food trails, and phrasebook",
+      "touristType": ["Heritage", "Adventure", "Spiritual", "Culinary"],
+      "provider": {
+        "@type": "Organization",
+        "name": "Yatra AI"
+      }
+    }
+    </script>
+
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
       rel="stylesheet"
     />
+
+    <!-- Vercel Analytics Integration Script -->
+    <script defer src="/_vercel/insights/script.js"></script>
   </head>
   <body>
     <div id="root"></div>

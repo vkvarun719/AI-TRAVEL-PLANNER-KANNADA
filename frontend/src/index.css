@@ -9,7 +9,7 @@
   }
 
   body {
-    @apply bg-karnataka-cream text-karnataka-dark;
+    @apply bg-[#FAF6F0] dark:bg-stone-950 text-karnataka-dark dark:text-stone-100 transition-colors duration-200;
   }
 }
 
@@ -22,17 +22,38 @@
   }
 
   .input-field {
-    @apply w-full rounded-xl border-2 border-stone-200 bg-white px-4 py-3
-           text-sm font-medium text-karnataka-dark placeholder-stone-400
+    @apply w-full rounded-xl border-2 border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 px-4 py-3
+           text-sm font-medium text-karnataka-dark dark:text-white placeholder-stone-400 dark:placeholder-stone-500
            focus:border-karnataka-gold focus:outline-none focus:ring-2
            focus:ring-karnataka-gold/20 transition-all duration-200;
   }
 
   .card {
-    @apply bg-white rounded-2xl shadow-md border border-stone-100 p-6;
+    @apply bg-white dark:bg-stone-900 rounded-2xl shadow-md border border-stone-100 dark:border-stone-800 p-6 transition-colors duration-200;
   }
 
   .tag {
     @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold;
+  }
+}
+
+@media print {
+  header, footer, aside, .no-print, button:not(.print-include) {
+    display: none !important;
+  }
+  body, html, main {
+    background: #ffffff !important;
+    color: #1a1a1a !important;
+  }
+  .card {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 1.5rem !important;
+  }
+  .lg\:col-span-8 {
+    width: 100% !important;
+    max-width: 100% !important;
   }
 }
