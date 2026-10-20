@@ -13,6 +13,7 @@ import KannadaCompanion from './KannadaCompanion'
 import LocalFoodTrail from './LocalFoodTrail'
 import CostBreakdownCard from './CostBreakdownCard'
 import SeasonalWeatherCard from './SeasonalWeatherCard'
+import FestivalEventsCard from './FestivalEventsCard'
 import PackingChecklistCard from './PackingChecklistCard'
 import ExpenseTrackerModal from './ExpenseTrackerModal'
 import { useLanguage } from '../context/LanguageContext'
@@ -589,6 +590,12 @@ export default function ItineraryResult({ data, onReset, onOpenPhrasebook, onOpe
           {/* Season & Live Weather Forecast Card with Hazard Warnings */}
           <SeasonalWeatherCard
             seasonInfo={data.season_info}
+            travelMonth={data.travel_month || 'October'}
+            destination={data.starting_point || 'Karnataka'}
+          />
+
+          {/* Karnataka Cultural Festivals & Events Calendar */}
+          <FestivalEventsCard
             travelMonth={data.travel_month || 'October'}
             destination={data.starting_point || 'Karnataka'}
           />
