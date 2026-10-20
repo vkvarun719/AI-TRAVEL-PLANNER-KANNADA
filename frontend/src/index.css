@@ -38,22 +38,57 @@
 }
 
 @media print {
-  header, footer, aside, .no-print, button:not(.print-include) {
+  /* Hide non-printable app shell elements */
+  header, footer, aside, nav, .no-print, button, input, select, textarea,
+  .toaster, [role="status"], .fixed, .sticky {
     display: none !important;
   }
+
   body, html, main {
     background: #ffffff !important;
-    color: #1a1a1a !important;
+    color: #1c1917 !important;
+    font-size: 11pt !important;
+    line-height: 1.4 !important;
   }
-  .card {
-    box-shadow: none !important;
-    border: 1px solid #e2e8f0 !important;
-    break-inside: avoid;
-    page-break-inside: avoid;
-    margin-bottom: 1.5rem !important;
+
+  /* Reset grids to single full-width column for standard A4 printing */
+  .grid, .lg\:grid-cols-12, .sm\:grid-cols-2, .md\:grid-cols-3 {
+    display: block !important;
+    width: 100% !important;
   }
-  .lg\:col-span-8 {
+
+  .lg\:col-span-8, .lg\:col-span-4 {
     width: 100% !important;
     max-width: 100% !important;
+  }
+
+  .card {
+    box-shadow: none !important;
+    border: 1px solid #d6d3d1 !important;
+    background: #ffffff !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    margin-bottom: 1.25rem !important;
+    padding: 1rem !important;
+  }
+
+  /* Ensure day cards break cleanly */
+  .day-card {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    border: 1px solid #e7e5e4 !important;
+    margin-bottom: 1rem !important;
+  }
+
+  /* Show print branding banner */
+  .print-banner {
+    display: block !important;
+    border-bottom: 2px solid #C8102E;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  a[href]:after {
+    content: "" !important;
   }
 }

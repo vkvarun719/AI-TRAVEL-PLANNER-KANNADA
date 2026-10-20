@@ -21,7 +21,7 @@ import ItinerarySkeleton from './components/ItinerarySkeleton'
 import FriendlyErrorState from './components/FriendlyErrorState'
 import { useLanguage } from './context/LanguageContext'
 import { useAuth } from './context/AuthContext'
-import { getTripById } from './utils/tripStorage'
+import { getTripById, saveTrip, decodeTripFromUrl } from './utils/tripStorage'
 import { CURATED_ITINERARIES } from './data/curatedItineraries'
 
 const HERO_PLACES = [
@@ -56,11 +56,19 @@ export default function App() {
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search)
+      const tripData = params.get('tripData')
       const tripId = params.get('tripId')
       const tripKey = params.get('trip')
       const view = params.get('view')
 
-      if (tripId) {
+      if (tripData) {
+        const decoded = decodeTripFromUrl(tripData)
+        if (decoded) {
+          saveTrip(decoded)
+          setResult(decoded)
+          toast.success(language === 'kn' ? 'ಹಂಚಿಕೊಂಡ ಪ್ರವಾಸವನ್ನು ಲೋಡ್ ಮಾಡಲಾಗಿದೆ! 🎒' : 'Loaded shared trip itinerary! 🎒')
+        }
+      } else if (tripId) {
         const saved = getTripById(tripId)
         if (saved) {
           setResult(saved)

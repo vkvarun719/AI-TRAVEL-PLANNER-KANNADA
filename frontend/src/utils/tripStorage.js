@@ -103,23 +103,61 @@ export function isDestinationFavorite(destId) {
   return favs.includes(destId)
 }
 
-// ─── Shareable Link Generator ──────────────────────────────────────────────
+// ─── Shareable Link Generator & Portable URL Serialization ─────────────────
+
+export function encodeTripToUrl(tripData) {
+  try {
+    const compact = {
+      starting_point: tripData.starting_point,
+      days: tripData.days,
+      budget: tripData.budget,
+      interests: tripData.interests,
+      travel_style: tripData.travel_style,
+      vibe: tripData.vibe,
+      travelers: tripData.travelers,
+      travel_month: tripData.travel_month,
+      language: tripData.language,
+      itinerary: tripData.itinerary,
+      local_food_trail: tripData.local_food_trail,
+      cost_breakdown: tripData.cost_breakdown,
+      season_info: tripData.season_info,
+      summary: tripData.summary,
+      best_time_to_visit: tripData.best_time_to_visit,
+      packing_tips: tripData.packing_tips,
+      title: tripData.title,
+      id: tripData.id || `trip_${Date.now()}`
+    }
+    const jsonStr = JSON.stringify(compact)
+    // UTF-8 safe base64 encoding
+    const base64 = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (match, p1) => {
+      return String.fromCharCode('0x' + p1)
+    }))
+    return base64
+  } catch (err) {
+    console.error('Failed to encode trip:', err)
+    return null
+  }
+}
+
+export function decodeTripFromUrl(encodedStr) {
+  try {
+    const raw = atob(encodedStr)
+    const jsonStr = decodeURIComponent(
+      Array.prototype.map.call(raw, (c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')
+    )
+    return JSON.parse(jsonStr)
+  } catch (err) {
+    console.error('Failed to decode trip:', err)
+    return null
+  }
+}
 
 export function generateShareableUrl(tripData) {
   if (typeof window === 'undefined') return ''
   const origin = window.location.origin
-  
-  // If trip is saved with an ID, construct simple share link
-  if (tripData.id) {
-    return `${origin}?tripId=${encodeURIComponent(tripData.id)}`
+  const encoded = encodeTripToUrl(tripData)
+  if (encoded) {
+    return `${origin}?tripData=${encodeURIComponent(encoded)}`
   }
-
-  // Otherwise, create a clean payload parameter
-  const summaryPayload = {
-    hub: tripData.starting_point,
-    days: tripData.days,
-    budget: tripData.budget,
-    vibe: tripData.vibe
-  }
-  return `${origin}?share=${encodeURIComponent(JSON.stringify(summaryPayload))}`
+  return `${origin}?tripId=${encodeURIComponent(tripData.id || '')}`
 }
