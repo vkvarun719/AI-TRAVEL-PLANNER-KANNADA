@@ -207,10 +207,3 @@ VITE_API_BASE_URL=http://localhost:8000
 
 ---
 
-## 👥 Team
-
-Built with ❤️ for the **Kannada Hackathon** — Problem Statement 6: *AI Travel Planner for Karnataka*
-
----
-
-*Performance Note: All heavy AI reasoning is offloaded to Gemini API. The backend is lightweight FastAPI — runs smoothly on 8GB RAM / i5 hardware.*
