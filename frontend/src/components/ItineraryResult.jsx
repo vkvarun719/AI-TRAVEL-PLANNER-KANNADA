@@ -585,10 +585,11 @@ export default function ItineraryResult({ data, onReset, onOpenPhrasebook, onOpe
             </div>
           </div>
 
-          {/* Phase 2: Season & Destination Climate Notes Card */}
+          {/* Season & Live Weather Forecast Card with Hazard Warnings */}
           <SeasonalWeatherCard
             seasonInfo={data.season_info}
             travelMonth={data.travel_month || 'October'}
+            destination={data.starting_point || 'Karnataka'}
           />
 
           {/* Best Time to Visit Callout */}
