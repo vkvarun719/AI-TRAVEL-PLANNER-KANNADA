@@ -18,7 +18,7 @@ const LOADING_STAGES_KN = [
   { icon: Sparkles, text: 'ಕನ್ನಡ ನುಡಿಗಟ್ಟುಗಳು ಮತ್ತು ಸ್ಥಳೀಯ ಸಲಹೆಗಳ ಜೋಡಣೆ...' },
 ]
 
-export default function ItinerarySkeleton({ startingPoint, days }) {
+export default function ItinerarySkeleton({ startingPoint, days, onInstantLoad }) {
   const { language } = useLanguage()
   const stages = language === 'kn' ? LOADING_STAGES_KN : LOADING_STAGES_EN
   const [currentStage, setCurrentStage] = useState(0)
@@ -31,6 +31,13 @@ export default function ItinerarySkeleton({ startingPoint, days }) {
     }, 1000)
     return () => clearInterval(timer)
   }, [])
+
+  useEffect(() => {
+    // If waiting more than 10 seconds and onInstantLoad exists, auto-trigger instant load so user is never stuck
+    if (elapsedSeconds >= 10 && onInstantLoad) {
+      onInstantLoad()
+    }
+  }, [elapsedSeconds, onInstantLoad])
 
   useEffect(() => {
     const stageInterval = setInterval(() => {
@@ -83,8 +90,8 @@ export default function ItinerarySkeleton({ startingPoint, days }) {
         </div>
 
         {/* Cold Start Waking Up Banner (Render Free Tier 30-45s) */}
-        {elapsedSeconds >= 6 && (
-          <div className="mt-4 pt-3.5 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between gap-3 animate-fade-in text-xs">
+        {elapsedSeconds >= 4 && (
+          <div className="mt-4 pt-3.5 border-t border-stone-100 dark:border-stone-800 flex flex-wrap items-center justify-between gap-3 animate-fade-in text-xs">
             <div className="flex items-center gap-2.5">
               <div className="p-1.5 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300">
                 <Coffee size={16} className="animate-bounce" />
@@ -92,20 +99,32 @@ export default function ItinerarySkeleton({ startingPoint, days }) {
               <div>
                 <div className="font-black text-stone-900 dark:text-stone-100 flex items-center gap-1.5">
                   <span>
-                    {language === 'kn' ? 'ಸರ್ವರ್ ಸಕ್ರಿಯಗೊಳ್ಳುತ್ತಿದೆ (~30–45 ಸೆಕೆಂಡು)' : 'Server is waking up from free sleep (~30–45s)'}
+                    {language === 'kn' ? 'ಸರ್ವರ್ ಸಕ್ರಿಯಗೊಳ್ಳುತ್ತಿದೆ (~10–20 ಸೆಕೆಂಡು)' : 'Generating your custom Karnataka route...'}
                   </span>
                   <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
                 </div>
                 <div className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">
                   {language === 'kn'
-                    ? 'Render ಉಚಿತ ಸರ್ವರ್ ಸ್ಲೀಪ್ ಮೋಡ್‌ನಿಂದ ಸಕ್ರಿಯಗೊಳ್ಳುತ್ತಿದೆ. ಕೆಲವೇ ಕ್ಷಣಗಳಲ್ಲಿ ಪೂರ್ಣಗೊಳ್ಳಲಿದೆ...'
-                    : 'Render free tier spins down after inactivity. Preparing your hyper-local Karnataka itinerary...'}
+                    ? 'ಸ್ಥಳೀಯ ಪ್ರವಾಸ ತಾಣಗಳು, ಊಟ ಮತ್ತು ಮಾರ್ಗ ನಕ್ಷೆ ಸಿದ್ಧಗೊಳ್ಳುತ್ತಿದೆ...'
+                    : 'Curating hyper-local heritage spots, authentic eateries & scenic road routes...'}
                 </div>
               </div>
             </div>
-            <span className="font-mono text-xs font-bold px-2 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200">
-              {elapsedSeconds}s
-            </span>
+            <div className="flex items-center gap-2">
+              {onInstantLoad && (
+                <button
+                  type="button"
+                  onClick={onInstantLoad}
+                  className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-karnataka-red to-red-600 text-white font-bold text-xs hover:from-red-600 hover:to-red-700 transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+                >
+                  <Sparkles size={13} />
+                  <span>{language === 'kn' ? 'ತತ್ಕ್ಷಣ ವೀಕ್ಷಿಸಿ ⚡' : 'Instant Load ⚡'}</span>
+                </button>
+              )}
+              <span className="font-mono text-xs font-bold px-2 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200">
+                {elapsedSeconds}s
+              </span>
+            </div>
           </div>
         )}
       </div>

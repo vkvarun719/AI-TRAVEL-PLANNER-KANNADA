@@ -26,7 +26,7 @@ import { useLanguage } from './context/LanguageContext'
 import { useAuth } from './context/AuthContext'
 import { getTripById, saveTrip, decodeTripFromUrl } from './utils/tripStorage'
 import { CURATED_ITINERARIES } from './data/curatedItineraries'
-import { pingBackendHealth } from './api/client'
+import { pingBackendHealth, buildLocalFallbackItinerary } from './api/client'
 
 const HERO_PLACES = [
   { name: 'Hampi', kn: 'ಹಂಪಿ' },
@@ -436,6 +436,12 @@ export default function App() {
           <ItinerarySkeleton
             startingPoint={loadingForm?.starting_point}
             days={loadingForm?.days}
+            onInstantLoad={() => {
+              const fallback = buildLocalFallbackItinerary(loadingForm || { starting_point: 'Bangalore', destination: 'Coorg' })
+              setResult(fallback)
+              setIsLoading(false)
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+            }}
           />
         ) : errorState ? (
           <FriendlyErrorState
