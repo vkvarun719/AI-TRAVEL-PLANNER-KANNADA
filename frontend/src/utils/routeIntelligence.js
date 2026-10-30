@@ -1,5 +1,9 @@
 // Hyper-local Karnataka Route Intelligence
 // Provides accurate road distance, drive duration, primary highways, transit options, and travel tips
+// Supports ANY starting point and destination in Karnataka.
+
+import { resolveLocation } from '../data/karnatakaLocations'
+import { getCoordinatesForPlace } from '../data/karnatakaCoordinates'
 
 export const POPULAR_DESTINATIONS = [
   { value: 'Coorg', en: 'Coorg (Madikeri)', kn: 'ಕೂರ್ಗ್ (ಮಡಿಕೇರಿ)', category: 'ghats' },
@@ -8,15 +12,19 @@ export const POPULAR_DESTINATIONS = [
   { value: 'Chikmagalur', en: 'Chikmagalur', kn: 'ಚಿಕ್ಕಮಗಳೂರು', category: 'ghats' },
   { value: 'Mysore', en: 'Mysuru (Mysore)', kn: 'ಮೈಸೂರು', category: 'heritage' },
   { value: 'Badami', en: 'Badami - Pattadakal', kn: 'ಬಾದಾಮಿ - ಪಟ್ಟದಕಲ್ಲು', category: 'heritage' },
-  { value: 'Dandeli', en: 'Dandeli', kn: 'ದಾಂಡೇಲಿ', category: 'adventure' },
+  { value: 'Dandeli', en: 'Dandeli', kn: 'ದಾಂಡೇಲಿ', category: 'nature' },
   { value: 'Udupi', en: 'Udupi - Malpe', kn: 'ಉಡುಪಿ - ಮಲ್ಪೆ', category: 'coastal' },
   { value: 'Jog Falls', en: 'Jog Falls (Shivamogga)', kn: 'ಜೋಗ ಜಲಪಾತ (ಶಿವಮೊಗ್ಗ)', category: 'nature' },
   { value: 'Western Ghats', en: 'Western Ghats (Agumbe / Sakleshpur)', kn: 'ಪಶ್ಚಿಮ ಘಟ್ಟಗಳು', category: 'ghats' },
   { value: 'Belur', en: 'Belur & Halebidu', kn: 'ಬೇಲೂರು & ಹಳೇಬೀಡು', category: 'heritage' },
   { value: 'Mangalore', en: 'Mangaluru', kn: 'ಮಂಗಳೂರು', category: 'coastal' },
+  { value: 'Sakleshpur', en: 'Sakleshpur', kn: 'ಸಕಲೇಶಪುರ', category: 'ghats' },
+  { value: 'Murudeshwar', en: 'Murudeshwar', kn: 'ಮುರುಡೇಶ್ವರ', category: 'coastal' },
+  { value: 'Bidar', en: 'Bidar Fort', kn: 'ಬೀದರ್', category: 'heritage' },
+  { value: 'Vijayapura', en: 'Vijayapura (Bijapur)', kn: 'ವಿಜಯಪುರ', category: 'heritage' },
 ]
 
-// Curated highway data & realistic transit intel
+// Curated highway data & realistic transit intel for key Karnataka corridors
 const ROUTE_CORRIDORS = {
   // From Bangalore
   'bangalore:coorg': {
@@ -115,6 +123,31 @@ const ROUTE_CORRIDORS = {
     roadStatus: 'Shiradi Ghat is scenic; coastal highway (NH 66) is modern 4-lane.',
     roadStatusKn: 'ಶಿರಾಡಿ ಘಾಟ್ ರಮಣೀಯ ಪರ್ವತ ಮಾರ್ಗ; ಕರಾವಳಿ ಹೆದ್ದಾರಿ ೪ ಪಥದ್ದಾಗಿದೆ.'
   },
+  'bangalore:bidar': {
+    distanceKm: 680,
+    driveTime: '11h 30m',
+    highway: 'NH 44 (Hyderabad highway) ➔ Zaheerabad ➔ Bidar or NH 50 via Kalaburagi',
+    highwayKn: 'NH ೪೪ (ಹೈದರಾಬಾದ್ ಹೆದ್ದಾರಿ) ➔ ಜಹೀರಾಬಾದ್ ➔ ಬೀದರ್ ಅಥವಾ ಕಲಬುರಗಿ ಮೂಲಕ',
+    bestTransit: 'Bidar Express (16577) or KSRTC Airavat Club Class overnight sleeper.',
+    bestTransitKn: 'ಬೀದರ್ ಎಕ್ಸ್‌ಪ್ರೆಸ್ ರಾತ್ರಿ ರೈಲು ಅಥವಾ KSRTC ಐರಾವತ ಸ್ಲೀಪರ್.',
+    transitTip: 'Visit Bidar Fort and taste Naan Qalia and authentic North Karnataka Jolada Rotti.',
+    transitTipKn: 'ಬೀದರ್ ಕೋಟೆ ವೀಕ್ಷಿಸಿ ಮತ್ತು ಬಿಸಿ ಜೋಳದ ರೊಟ್ಟಿ ಊಟ ಸವಿಯಿರಿ.',
+    roadStatus: 'Modern 4-lane national expressway corridor.',
+    roadStatusKn: 'ಅತ್ಯುತ್ತಮ ೪ ಪಥದ ರಾಷ್ಟ್ರೀಯ ಹೆದ್ದಾರಿ.'
+  },
+  'bangalore:vijayapura': {
+    distanceKm: 530,
+    driveTime: '9h 15m',
+    highway: 'NH 48 (Chitradurga ➔ Hosapete) ➔ NH 50 ➔ Vijayapura',
+    highwayKn: 'NH ೪೮ (ಚಿತ್ರದುರ್ಗ ➔ ಹೊಸಪೇಟೆ) ➔ NH ೫೦ ➔ ವಿಜಯಪುರ',
+    bestTransit: 'Gol Gumbaz Express (16535) or Basava Express directly to Vijayapura.',
+    bestTransitKn: 'ಗೋಲ್ ಗುಂಬಜ್ ಎಕ್ಸ್‌ಪ್ರೆಸ್ ಅಥವಾ ಬಸವ ಎಕ್ಸ್‌ಪ್ರೆಸ್ ರೈಲು ಸೇವೆ.',
+    transitTip: 'Visit Gol Gumbaz early morning at 6:30 AM before tourist crowds gather.',
+    transitTipKn: 'ಮುಂಜಾನೆ ೬:೩೦ ಕ್ಕೆ ಗೋಲ್ ಗುಂಬಜ್ ತಲುಪಿ ಪಿಸುಗುಟ್ಟುವ ಗ್ಯಾಲರಿಯ ನಾದ ಅನುಭವಿಸಿ.',
+    roadStatus: 'Wide 4-lane highway corridor connecting North and South Karnataka.',
+    roadStatusKn: 'ಉತ್ತರ ಮತ್ತು ದಕ್ಷಿಣ ಕರ್ನಾಟಕವನ್ನು ಬೆಸೆಯುವ ೪ ಪಥದ ಹೆದ್ದಾರಿ.'
+  },
+
   // From Mysore
   'mysore:coorg': {
     distanceKm: 120,
@@ -152,6 +185,7 @@ const ROUTE_CORRIDORS = {
     roadStatus: 'Mix of newly built 4-lane and well-surfaced 2-lane highway.',
     roadStatusKn: '೪ ಪಥ ಹಾಗೂ ಸುಗಮ ದ್ವಿಪಥ ಹೆದ್ದಾರಿಗಳ ಸಂಯೋಜನೆ.'
   },
+
   // From Mangalore
   'mangalore:gokarna': {
     distanceKm: 230,
@@ -191,7 +225,20 @@ const ROUTE_CORRIDORS = {
   }
 }
 
-// Estimates distance & route details for any origin & destination pair in Karnataka
+// Haversine formula to compute geodesic distance between two points in Karnataka
+function computeGeodesicKm(lat1, lon1, lat2, lon2) {
+  const R = 6371 // Earth radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180
+  const dLon = (lon2 - lon1) * Math.PI / 180
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return R * c
+}
+
+// Computes or looks up distance & route details for ANY pair in Karnataka
 export function getRouteIntelligence(originName = 'Bangalore', destName = 'Coorg') {
   if (!originName || !destName) return null
 
@@ -218,15 +265,15 @@ export function getRouteIntelligence(originName = 'Bangalore', destName = 'Coorg
     }
   }
 
-  // 2. Fallback smart heuristic approximation for any other Karnataka destination
+  // 2. Same city check
   const isSameCity = originNorm === destNorm
   if (isSameCity) {
     return {
       from: originName,
       to: destName,
-      distanceKm: 35,
+      distanceKm: 30,
       driveTime: '1h 00m',
-      highway: `Local Ring Roads & Sightseeing Arteries in and around ${destName}`,
+      highway: `Local Arteries & Sightseeing Corridors in and around ${destName}`,
       highwayKn: `${destName} ಸುತ್ತಮುತ್ತಲಿನ ಸ್ಥಳೀಯ ಪ್ರವಾಸಿ ರಸ್ತೆಗಳು`,
       bestTransit: 'Local auto-rickshaw, city bus, or rental scooter for local exploration.',
       bestTransitKn: 'ಸ್ಥಳೀಯ ಆಟೋ ರಿಕ್ಷಾ, ನಗರ ಸಾರಿಗೆ ಅಥವಾ ಬಾಡಿಗೆ ಸ್ಕೂಟರ್.',
@@ -237,19 +284,55 @@ export function getRouteIntelligence(originName = 'Bangalore', destName = 'Coorg
     }
   }
 
-  // Generic estimation across Karnataka districts (avg 220 km, 4.5 hrs)
+  // 3. Dynamic Geographic Calculation for ANY Karnataka pair
+  const originLoc = resolveLocation(originName)
+  const destLoc = resolveLocation(destName)
+  const originCoords = getCoordinatesForPlace(originName, originLoc.district)
+  const destCoords = getCoordinatesForPlace(destName, destLoc.district)
+
+  // Straight line * terrain detour multiplier (1.32 for plains, 1.45 for ghats)
+  const isGhatOrCoast =
+    originLoc.category === 'ghats' || destLoc.category === 'ghats' ||
+    originLoc.category === 'coastal' || destLoc.category === 'coastal'
+
+  const detourFactor = isGhatOrCoast ? 1.42 : 1.30
+  const straightKm = computeGeodesicKm(originCoords.lat, originCoords.lng, destCoords.lat, destCoords.lng)
+  const calculatedRoadKm = Math.max(35, Math.round(straightKm * detourFactor))
+
+  // Estimate realistic driving hours based on terrain speed
+  const avgSpeedKmH = isGhatOrCoast ? 46 : 56
+  const totalMinutes = Math.round((calculatedRoadKm / avgSpeedKmH) * 60)
+  const hours = Math.floor(totalMinutes / 60)
+  const mins = totalMinutes % 60
+  const formattedDriveTime = `${hours}h ${mins < 10 ? '0' + mins : mins}m`
+
+  // Identify highway corridor based on latitude/longitude trajectory
+  let highwayName = 'Karnataka State & National Highway Network'
+  let highwayNameKn = 'ಕರ್ನಾಟಕ ರಾಜ್ಯ ಹಾಗೂ ರಾಷ್ಟ್ರೀಯ ಹೆದ್ದಾರಿ ಸಂಪರ್ಕ'
+
+  if (calculatedRoadKm > 300) {
+    highwayName = `Major Karnataka Interstate Corridor connecting ${originName} and ${destName}`
+    highwayNameKn = `${originName} ಮತ್ತು ${destName} ಸಂಪರ್ಕಿಸುವ ಪ್ರಮುಖ ರಾಜ್ಯ ಹೆದ್ದಾರಿ`
+  } else if (isGhatOrCoast) {
+    highwayName = `Scenic Western Ghats & Coastal Highway connecting ${originName} and ${destName}`
+    highwayNameKn = `${originName} ನಿಂದ ${destName} ಗೆ ಪಶ್ಚಿಮ ಘಟ್ಟಗಳ ರಮಣೀಯ ಮಾರ್ಗ`
+  } else {
+    highwayName = `Direct Toll Highway Corridor connecting ${originName} and ${destName}`
+    highwayNameKn = `${originName} ಮತ್ತು ${destName} ನಡುವಿನ ನೇರ ಹೆದ್ದಾರಿ ಕಾರಿಡಾರ್`
+  }
+
   return {
     from: originName,
     to: destName,
-    distanceKm: 280,
-    driveTime: '5h 30m',
-    highway: `Direct Karnataka State / National Highway corridor connecting ${originName} and ${destName}`,
-    highwayKn: `${originName} ಮತ್ತು ${destName} ನಡುವಿನ ನೇರ ಹೆದ್ದಾರಿ ಕಾರಿಡಾರ್`,
-    bestTransit: 'KSRTC Express bus service from central bus stand or scenic self-drive / cab.',
-    bestTransitKn: 'ಕೇಂದ್ರ ಬಸ್ ನಿಲ್ದಾಣದಿಂದ KSRTC ಸಾರಿಗೆ ಬಸ್ ಅಥವಾ ಸುಂದರ ಕಾರ್ ಪ್ರಯಾಣ.',
-    transitTip: `Check local morning bus schedules at the KSRTC bus stand for direct non-stop trips towards ${destName}.`,
-    transitTipKn: `ನೇರ ಬಸ್ ಪ್ರಯಾಣಕ್ಕಾಗಿ ಸ್ಥಳೀಯ KSRTC ವೇಳಾಪಟ್ಟಿಯನ್ನು ಪರಿಶೀಲಿಸಿ.`,
-    roadStatus: 'Well-connected Karnataka highway with regional toll plazas and fuel pitstops.',
-    roadStatusKn: 'ಉತ್ತಮ ಸಂಪರ್ಕ ಹೊಂದಿರುವ ಕರ್ನಾಟಕ ಹೆದ್ದಾರಿ ಮಾರ್ಗ.'
+    distanceKm: calculatedRoadKm,
+    driveTime: formattedDriveTime,
+    highway: highwayName,
+    highwayKn: highwayNameKn,
+    bestTransit: `KSRTC Express / Rajahamsa bus service or convenient self-drive car/taxi directly connecting ${originName} to ${destName}.`,
+    bestTransitKn: `${originName} ನಿಂದ ${destName} ಗೆ KSRTC ಸಾರಿಗೆ ಬಸ್ಸುಗಳು ಅಥವಾ ಸುಂದರ ರಸ್ತೆ ಕಾರು ಪ್ರಯಾಣ.`,
+    transitTip: `Check morning bus departures from ${originName} central KSRTC depot for non-stop connectivity towards ${destName}.`,
+    transitTipKn: `${originName} ಬಸ್ ನಿಲ್ದಾಣದಿಂದ ${destName} ಕಡೆಗೆ ಹೊರಡುವ ಮುಂಜಾನೆಯ KSRTC ವೇಳಾಪಟ್ಟಿ ಪರಿಶೀಲಿಸಿ.`,
+    roadStatus: 'Paved state/national highway with regional toll plazas, fuel pumps, and highway eateries.',
+    roadStatusKn: 'ಸುಗಮ ರಸ್ತೆ ಸಂಪರ್ಕ, ಪೆಟ್ರೋಲ್ ಬಂಕ್ ಹಾಗೂ ಉಪಹಾರ ಗೃಹಗಳಿರುವ ಹೆದ್ದಾರಿ ಮಾರ್ಗ.'
   }
 }

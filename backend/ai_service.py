@@ -332,9 +332,9 @@ def generate_fallback_itinerary(req: ItineraryRequest) -> dict:
             "tips": tip_text,
             "estimated_cost": f"₹{1500 * (1 if req.budget == 'budget' else 2)} - ₹{2500 * (1 if req.budget == 'budget' else 2)}",
             "stay": {
-                "name": f"{hub} Green Valley Homestay / Resort",
+                "name": f"{dest} Green Valley Homestay / Resort",
                 "type": "Heritage Plantation Stay",
-                "area": hub,
+                "area": dest,
                 "approx_price": "₹3,000 - ₹5,000 / night",
                 "why_special": "Peaceful local hospitality, home-cooked regional meals, and easy access to attractions."
             },
@@ -358,14 +358,14 @@ def generate_fallback_itinerary(req: ItineraryRequest) -> dict:
                     "dish": "Karnataka Masala Dosa & Filter Coffee" if not is_kn else "ತುಪ್ಪದ ಮಸಾಲೆ ದೋಸೆ & ಫಿಲ್ಟರ್ ಕಾಫಿ",
                     "meal_type": "Breakfast",
                     "approx_cost": "₹160 for two",
-                    "address_or_area": f"Main Market, {hub}"
+                    "address_or_area": f"Main Market, {dest}"
                 },
                 {
                     "name": "Hotel RRR / Coastal Regional Mess",
                     "dish": "Authentic Regional Thali (Oota)" if not is_kn else "ಸಾಂಪ್ರದಾಯಿಕ ಬಾಳೆ ಎಲೆ ಊಟ",
                     "meal_type": "Lunch",
                     "approx_cost": "₹380 for two",
-                    "address_or_area": f"Town Center, {hub}"
+                    "address_or_area": f"Town Center, {dest}"
                 }
             ]
         })
@@ -387,7 +387,7 @@ def generate_fallback_itinerary(req: ItineraryRequest) -> dict:
             "weather_summary": f"Favorable conditions for exploring {hub} in {req.travel_month or 'October'}.",
             "destination_weather_notes": [
                 {
-                    "destination": hub,
+                    "destination": dest,
                     "note": f"Clear skies with comfortable daytime temperatures in {req.travel_month or 'October'}",
                     "temperature_range": "20°C - 30°C"
                 }
@@ -397,14 +397,14 @@ def generate_fallback_itinerary(req: ItineraryRequest) -> dict:
             {
                 "dish_name": "Crispy Benne Dosa & Filter Coffee" if not is_kn else "ಬೆಣ್ಣೆ ದೋಸೆ ಮತ್ತು ಫಿಲ್ಟರ್ ಕಾಫಿ",
                 "regional_origin": "Central / South Karnataka",
-                "iconic_spot": f"Iconic Heritage Tiffin Hall, {hub}",
+                "iconic_spot": f"Iconic Heritage Tiffin Hall, {dest}",
                 "description": "Golden-brown crisp outside, fluffy inside, served with spicy red chutney and potato palya.",
                 "vegetarian": True
             },
             {
                 "dish_name": "Traditional Karnataka Meals (Oota)" if not is_kn else "ಸಾಂಪ್ರದಾಯಿಕ ಕರ್ನಾಟಕ ಊಟ",
                 "regional_origin": "Karavali / Malnad / Old Mysore",
-                "iconic_spot": f"Local Mess, {hub}",
+                "iconic_spot": f"Local Mess, {dest}",
                 "description": "Steaming hot rice, saaru, huli, kootu, kosambari, and sweet payasa served on a fresh plantain leaf.",
                 "vegetarian": True
             }
@@ -619,7 +619,7 @@ OUTPUT FORMAT — Return ONLY a single JSON object for DayPlan:
             "stay": {
                 "name": f"{hub} Royal Heritage Homestay",
                 "type": "Heritage Stay",
-                "area": hub,
+                "area": dest,
                 "approx_price": "₹3,200 / night",
                 "why_special": "Peaceful ambience with authentic regional hospitality."
             },
